@@ -8,6 +8,7 @@ return {
     config = function()
         require("go").setup({
             tag_options = "",
+            tag_transform = "camelcase",
         })
     end,
     event = { "CmdlineEnter" },

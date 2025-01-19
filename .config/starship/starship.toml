@@ -1,0 +1,36 @@
+format = """
+$kubernetes\
+$directory\
+$git_branch\
+$git_commit\
+$git_status\
+$fill\
+$status\
+$cmd_duration\
+$time
+$line_break\
+$character\
+"""
+
+[kubernetes]
+disabled = false
+
+[fill]
+symbol = " "
+
+[cmd_duration]
+min_time = 1
+format = "[$duration]($style) "
+
+[git_commit]
+tag_disabled = false
+only_detached = false
+
+[status]
+format = '[\[$symbol$common_meaning$signal_name$maybe_int\]]($style) '
+success_symbol = "🌙"
+disabled = false
+
+[time]
+disabled = false
+format = '[$time]($style) '

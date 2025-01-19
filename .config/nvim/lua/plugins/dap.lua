@@ -112,7 +112,7 @@ return {
         local dapui = require("dapui")
         dap.listeners.before.event_terminated.dapui_config = function() end
         dap.listeners.before.event_exited.dapui_config = function() end
-        require("overseer").enable_dap()
+        -- require("overseer").enable_dap()
         -- Configure the nlua adapter
         dap.adapters.nlua = function(callback, config)
             callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
@@ -164,19 +164,35 @@ return {
                 if not final_config.env then
                     final_config.env = {}
                 end
+                -- in order to make it an object, by default an empty {} is an array and the marshalling fails
+                final_config.env["VIM"] = "1"
+
                 if final_config.envFile then
                     local filePath = final_config.envFile
                     for key, fn in pairs(placeholders) do
                         filePath = filePath:gsub(key, fn)
                     end
 
-                    for line in io.lines(filePath) do
-                        local key, value = line:match("([^=]+)=(.+)")
-                        if key and value then
-                            value = value:match("^['\"](.-)['\"]$") or value
-                            final_config.env[key] = value
+                    local file = io.open(filePath, "r")
+                    if not file then
+                        print("File not found: " .. filePath)
+                    else
+                        for line in file:lines() do
+                            local key, value = line:match("([^=]+)=(.+)")
+                            if key and value then
+                                value = value:match("^['\"](.-)['\"]$") or value
+                                final_config.env[key] = value
+                            end
                         end
                     end
+                    if file then
+                        file:close()
+                    end
+                end
+
+                -- turn on stdout for go
+                if final_config["type"] == "go" then
+                    final_config["outputMode"] = "remote"
                 end
 
                 on_config(final_config)
