@@ -27,8 +27,8 @@
     "lazyvim.plugins.extras.util.dot",
     "lazyvim.plugins.extras.util.project"
   ],
-  "news": {
-    "NEWS.md": "7429"
-  },
+  "news": [
+
+  ],
   "version": 7
 }
