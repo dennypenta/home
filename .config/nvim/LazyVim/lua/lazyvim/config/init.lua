@@ -3,7 +3,7 @@ _G.LazyVim = require("lazyvim.util")
 ---@class LazyVimConfig: LazyVimOptions
 local M = {}
 
-M.version = "14.8.0" -- x-release-please-version
+M.version = "13.9.1" -- x-release-please-version
 LazyVim.config = M
 
 ---@class LazyVimOptions
@@ -85,7 +85,7 @@ local defaults = {
       Package       = " ",
       Property      = " ",
       Reference     = " ",
-      Snippet       = "󱄽 ",
+      Snippet       = " ",
       String        = " ",
       Struct        = "󰆼 ",
       Supermaven    = " ",

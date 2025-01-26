@@ -28,7 +28,6 @@ Config.options.change_detection.enabled = false
 Config.options.defaults.cond = function(plugin)
   return vim.tbl_contains(enabled, plugin.name) or plugin.vscode
 end
-vim.g.snacks_animate = false
 
 -- Add some vscode specific keymaps
 vim.api.nvim_create_autocmd("User", {
@@ -54,20 +53,6 @@ function LazyVim.terminal()
 end
 
 return {
-  {
-    "snacks.nvim",
-    opts = {
-      bigfile = { enabled = false },
-      dashboard = { enabled = false },
-      indent = { enabled = false },
-      input = { enabled = false },
-      notifier = { enabled = false },
-      picker = { enabled = false },
-      quickfile = { enabled = false },
-      scroll = { enabled = false },
-      statuscolumn = { enabled = false },
-    },
-  },
   {
     "LazyVim/LazyVim",
     config = function(_, opts)

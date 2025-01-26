@@ -9,8 +9,7 @@ return {
   },
 
   {
-    "hrsh7th/nvim-cmp",
-    optional = true,
+    "nvim-cmp",
     dependencies = {
       { "petertriho/cmp-git", opts = {} },
     },

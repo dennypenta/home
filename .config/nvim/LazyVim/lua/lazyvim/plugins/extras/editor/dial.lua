@@ -140,11 +140,6 @@ return {
           }),
         },
         markdown = {
-          augend.constant.new({
-            elements = { "[ ]", "[x]" },
-            word = false,
-            cyclic = true,
-          }),
           augend.misc.alias.markdown_header,
         },
         json = {

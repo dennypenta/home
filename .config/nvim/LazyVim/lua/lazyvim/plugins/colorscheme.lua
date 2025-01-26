@@ -1,4 +1,12 @@
 return {
+
+  -- tokyonight
+  {
+    "folke/tokyonight.nvim",
+    lazy = true,
+    opts = { style = "moon" },
+  },
+
   -- catppuccin
   {
     "catppuccin/nvim",
@@ -11,7 +19,6 @@ return {
         cmp = true,
         dashboard = true,
         flash = true,
-        fzf = true,
         grug_far = true,
         gitsigns = true,
         headlines = true,

@@ -14,7 +14,7 @@ return {
   },
 
   {
-    "hrsh7th/nvim-cmp",
+    "nvim-cmp",
     optional = true,
     dependencies = { "tzachar/cmp-tabnine" },
     ---@param opts cmp.ConfigSchema
@@ -41,13 +41,7 @@ return {
     opts = {
       sources = {
         compat = { "cmp_tabnine" },
-        providers = {
-          cmp_tabnine = {
-            kind = "TabNine",
-            score_offset = 100,
-            async = true,
-          },
-        },
+        providers = { cmp_tabnine = { kind = "TabNine" } },
       },
     },
   },

@@ -1,4 +1,3 @@
----@diagnostic disable: missing-fields
 if lazyvim_docs then
   -- set to `true` to follow the main branch
   -- you need to have a working rust toolchain to build the plugin
@@ -9,7 +8,6 @@ end
 return {
   {
     "hrsh7th/nvim-cmp",
-    optional = true,
     enabled = false,
   },
   {
@@ -36,11 +34,6 @@ return {
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
-      snippets = {
-        expand = function(snippet, _)
-          return LazyVim.cmp.expand(snippet)
-        end,
-      },
       appearance = {
         -- sets the fallback highlight groups to nvim-cmp's highlight groups
         -- useful for when your theme doesn't support blink.cmp
@@ -59,7 +52,7 @@ return {
         },
         menu = {
           draw = {
-            treesitter = { "lsp" },
+            treesitter = true,
           },
         },
         documentation = {
@@ -79,12 +72,14 @@ return {
         -- with blink.compat
         compat = {},
         default = { "lsp", "path", "snippets", "buffer" },
-        cmdline = {},
       },
 
       keymap = {
         preset = "enter",
-        ["<C-y>"] = { "select_and_accept" },
+        ["<Tab>"] = {
+          LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
+          "fallback",
+        },
       },
     },
     ---@param opts blink.cmp.Config | { sources: { compat: string[] } }
@@ -102,24 +97,11 @@ return {
         end
       end
 
-      -- add ai_accept to <Tab> key
-      if not opts.keymap["<Tab>"] then
-        if opts.keymap.preset == "super-tab" then -- super-tab
-          opts.keymap["<Tab>"] = {
-            require("blink.cmp.keymap.presets")["super-tab"]["<Tab>"][1],
-            LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
-            "fallback",
-          }
-        else -- other presets
-          opts.keymap["<Tab>"] = {
-            LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
-            "fallback",
-          }
-        end
+      -- TODO: remove when blink made a new release > 0.7.6
+      if not vim.g.lazyvim_blink_main then
+        opts.sources.completion = opts.sources.completion or {}
+        opts.sources.completion.enabled_providers = enabled
       end
-
-      -- Unset custom prop to pass blink.cmp validation
-      opts.sources.compat = nil
 
       -- check if we need to override symbol kinds
       for _, provider in pairs(opts.sources.providers or {}) do
@@ -129,7 +111,6 @@ return {
           local kind_idx = #CompletionItemKind + 1
 
           CompletionItemKind[kind_idx] = provider.kind
-          ---@diagnostic disable-next-line: no-unknown
           CompletionItemKind[provider.kind] = kind_idx
 
           ---@type fun(ctx: blink.cmp.Context, items: blink.cmp.CompletionItem[]): blink.cmp.CompletionItem[]
@@ -143,9 +124,6 @@ return {
             end
             return items
           end
-
-          -- Unset custom prop to pass blink.cmp validation
-          provider.kind = nil
         end
       end
 
@@ -158,7 +136,7 @@ return {
     "saghen/blink.cmp",
     opts = function(_, opts)
       opts.appearance = opts.appearance or {}
-      opts.appearance.kind_icons = vim.tbl_extend("force", opts.appearance.kind_icons or {}, LazyVim.config.icons.kinds)
+      opts.appearance.kind_icons = LazyVim.config.icons.kinds
     end,
   },
 
@@ -173,7 +151,6 @@ return {
           lazydev = {
             name = "LazyDev",
             module = "lazydev.integrations.blink",
-            score_offset = 100, -- show at a higher priority than lsp
           },
         },
       },

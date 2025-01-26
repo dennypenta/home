@@ -176,15 +176,12 @@ return {
     event = "VeryLazy",
     opts_extend = { "spec" },
     opts = {
-      preset = "helix",
       defaults = {},
       spec = {
         {
           mode = { "n", "v" },
           { "<leader><tab>", group = "tabs" },
           { "<leader>c", group = "code" },
-          { "<leader>d", group = "debug" },
-          { "<leader>dp", group = "profiler" },
           { "<leader>f", group = "file/find" },
           { "<leader>g", group = "git" },
           { "<leader>gh", group = "hunks" },
@@ -395,12 +392,6 @@ return {
     import = "lazyvim.plugins.extras.editor.telescope",
     enabled = function()
       return LazyVim.pick.want() == "telescope"
-    end,
-  },
-  {
-    import = "lazyvim.plugins.extras.editor.snacks_picker",
-    enabled = function()
-      return LazyVim.pick.want() == "snacks"
     end,
   },
 }
