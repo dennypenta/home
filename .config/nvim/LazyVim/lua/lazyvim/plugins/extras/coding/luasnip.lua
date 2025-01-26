@@ -14,7 +14,9 @@ return {
         "rafamadriz/friendly-snippets",
         config = function()
           require("luasnip.loaders.from_vscode").lazy_load()
-          require("luasnip.loaders.from_vscode").lazy_load({ paths = { vim.fn.stdpath("config") .. "/snippets" } })
+          require("luasnip.loaders.from_vscode").lazy_load({
+            paths = { vim.fn.stdpath("config") .. "/snippets" },
+          })
         end,
       },
     },
@@ -30,7 +32,9 @@ return {
     opts = function()
       LazyVim.cmp.actions.snippet_forward = function()
         if require("luasnip").jumpable(1) then
-          require("luasnip").jump(1)
+          vim.schedule(function()
+            require("luasnip").jump(1)
+          end)
           return true
         end
       end
