@@ -1,36 +1,71 @@
 format = """
+[░▒▓](#a3aed2)\
 $kubernetes\
 $directory\
+(fg:#769ff0 bg:#394260)\
 $git_branch\
 $git_commit\
 $git_status\
-$fill\
-$status\
+$time\
+(fg:#1d2230)\
 $cmd_duration\
-$time
+$status(fg:#394260 bg:#212736)\
+(fg:#212736 bg:#1d2230)\
 $line_break\
 $character\
 """
 
 [kubernetes]
+format = '[  $context \($namespace\) ]($style)'
 disabled = false
+style = "fg:#769ff0 bg:#1B1322"
+
+[directory]
+style = "fg:#b0b3b8 bg:#2A1F33"
+format = "[ $path ]($style)"
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = "\ueb06"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
 
 [fill]
 symbol = " "
 
 [cmd_duration]
 min_time = 1
-format = "[$duration]($style) "
+style = "fg:#e3e5e5 bg:#654D77"
+format = "[ $duration]($style)"
 
 [git_commit]
 tag_disabled = false
 only_detached = false
+style = "fg:#a3aed2 bg:#483655"
+format = "[# $hash $tag]($style)"
 
 [status]
-format = '[\[$symbol$common_meaning$signal_name$maybe_int\]]($style) '
+format = '[ $symbol$common_meaning$signal_name$maybe_int ](fg:#a3aed2 bg:#745988)'
 success_symbol = "🌙"
 disabled = false
 
+[git_status]
+style = "bg:#564266"
+format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#564266)]($style)'
+
+[git_branch]
+symbol = ""
+style = "bg:#394260"
+format = '[[ $symbol $branch ](fg:#769ff0 bg:#392A44)]($style)'
+
 [time]
 disabled = false
-format = '[$time]($style) '
+time_format = '%H:%M:%S'
+format = '[[  $time ](fg:#a0a9cb bg:#564266)]($style)'
+style = "bg:#1d2230"
+
+[character]
+success_symbol = "[❯](bold yellow)"
