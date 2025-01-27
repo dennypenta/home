@@ -45,6 +45,6 @@ return {
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = true },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = true },
 	}),
-	color_scheme = "MaterialOcean",
+	color_scheme = "Ciapre",
 	font_size = 14.0,
 }
