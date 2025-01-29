@@ -1,5 +1,5 @@
 format = """
-[░▒▓](#a3aed2)\
+[░▒▓](os_bg)\
 $kubernetes\
 [ ](bg:#272640 fg:#312244)\
 $directory\
