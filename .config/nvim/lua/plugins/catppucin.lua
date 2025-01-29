@@ -1,10 +1,6 @@
 return {
   {
-    "catppuccin",
-    opts = {
-      transparent_background = true,
-      integrations = { overseer = true },
-    },
+    "catppuccin/nvim",
   },
   {
     "LazyVim/LazyVim",

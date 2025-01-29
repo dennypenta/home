@@ -13,9 +13,6 @@ return {
       },
     },
     {
-      "stevearc/overseer.nvim",
-    },
-    {
       "rcarriga/nvim-dap-ui",
       dependencies = {
         "nvim-neotest/nvim-nio",
@@ -34,23 +31,6 @@ return {
       ["neotest-golang"] = {
         go_test_args = { "-count=1", "-race", "-v", "-short" },
         dap_go_enabled = false,
-      },
-    },
-    consumers = {
-      overseer = function(client)
-        require("neotest.consumers.overseer")(client)
-      end,
-      live = function(client)
-        require("plugins.consumers.live")(client)
-      end,
-    },
-    strategies = {
-      overseer = {
-        components = function(run_spec)
-          return {
-            "default_neotest",
-          }
-        end,
       },
     },
     status = { virtual_text = true },
@@ -98,10 +78,6 @@ return {
     }, neotest_ns)
 
     opts.consumers = opts.consumers or {}
-    opts.overseer = {
-      enabled = true,
-      force_default = true,
-    }
     if LazyVim.has("trouble.nvim") then
       -- Refresh and auto close trouble after running tests
       ---@type neotest.Consumer
@@ -195,7 +171,7 @@ return {
     { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run File (Neotest)" },
     { "<leader>tp", function() require("neotest").run.run(vim.fn.expand("%:p:h")) end, desc = "Run Package (Neotest)" },
     { "<leader>tT", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "Run All Test Files (Neotest)" },
-    { "<leader>tr", function() require("neotest").run.run({strategy = "overseer"}) end, desc = "Run Nearest (Neotest)" },
+    { "<leader>tr", function() require("neotest").run.run() end, desc = "Run Nearest (Neotest)" },
     { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run Last (Neotest)" },
     { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "Toggle Summary (Neotest)" },
     { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Output (Neotest)" },
