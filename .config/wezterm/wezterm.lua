@@ -23,11 +23,11 @@ return {
 			key = "=",
 			action = wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }),
 		},
-      {
-    key = 'w',
-    mods = 'LEADER',
-    action = wezterm.action.CloseCurrentPane { confirm = true },
-  },
+		{
+			key = "w",
+			mods = "LEADER",
+			action = wezterm.action.CloseCurrentPane({ confirm = true }),
+		},
 		-- SHIFT + CTRL         LeftArrow          ->   ActivatePaneDirection(Left)
 		-- SHIFT + CTRL         RightArrow         ->   ActivatePaneDirection(Right)
 		-- SHIFT + CTRL         UpArrow            ->   ActivatePaneDirection(Up)
@@ -45,6 +45,6 @@ return {
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = true },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = true },
 	}),
-	color_scheme = "Ciapre",
+	color_scheme = "nightfox",
 	font_size = 14.0,
 }
