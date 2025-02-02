@@ -86,6 +86,20 @@ return {
             desc = "Open with System Application",
           },
           ["P"] = { "toggle_preview", config = { use_float = false } },
+          ["F"] = {
+            function(state)
+              local path = state.tree:get_node().path
+              local parentPath = vim.fs.dirname(path)
+              require("lazy.util").open(parentPath, { system = true })
+            end,
+            desc = "Open parent with System Application",
+          },
+          ["G"] = {
+            function(state)
+              vim.cmd("FzfLua live_grep search_paths=" .. state.tree:get_node().path)
+            end,
+            desc = "Live grep in the node",
+          },
         },
       },
       default_component_configs = {
