@@ -1,0 +1,9 @@
+.vscode
+t/
+t.go
+__debug_bin
+.DS_Store
+*.env*.local
+.mirrord/
+.run/
+

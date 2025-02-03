@@ -1,0 +1,18 @@
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+[user]
+	name = Denis
+	email = candyboobers@gmail.com
+[http]
+	cookiefile = /Users/denis/.gitcookies
+[push]
+  autoSetupRemote = true
+[rerere]
+  enabled = true
+[core]
+	excludesFile = ~/.gitignore
+[url "git@github.com:"]
+	insteadOf = https://github.com
