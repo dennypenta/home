@@ -141,6 +141,7 @@ alias gfrm="git fetch --all && git rebase origin/main || git rebase origin/maste
 alias gfrd="git fetch --all && git rebase origin/develop"
 alias cpf="copyfile"
 alias zshrc="${=EDITOR} ~/.zshrc"
+alias vimrc="cd ~/.config/nvim && ${=EDITOR} ~/.config/nvim/"
 
 # starship load
 export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"

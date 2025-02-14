@@ -1,7 +1,13 @@
 local wezterm = require("wezterm")
 
 return {
-	window_background_opacity = 1.0,
+	-- keys
+	-- skip_close_confirmation_for_processes_named = {
+	-- 	"bash",
+	-- 	"sh",
+	-- 	"zsh",
+	-- 	"lazygit",
+	-- },
 	leader = { key = "b", mods = "CMD", timeout_milliseconds = 1000 },
 	keys = {
 		-- Make Option-Left equivalent to Alt-b which many line editors interpret as backward-word
@@ -26,7 +32,12 @@ return {
 		{
 			key = "w",
 			mods = "LEADER",
-			action = wezterm.action.CloseCurrentPane({ confirm = true }),
+			action = wezterm.action.CloseCurrentPane({ confirm = false }),
+		},
+		{
+			key = "w",
+			mods = "CMD",
+			action = wezterm.action.CloseCurrentTab({ confirm = false }),
 		},
 		-- SHIFT + CTRL         LeftArrow          ->   ActivatePaneDirection(Left)
 		-- SHIFT + CTRL         RightArrow         ->   ActivatePaneDirection(Right)
@@ -39,6 +50,8 @@ return {
 		-- CTRL+SHIFT+ALT	DownArrow	AdjustPaneSize={"Down", 1}
 	},
 
+	-- theme
+	window_background_opacity = 1.0,
 	font = wezterm.font_with_fallback({
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = false },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = false },
