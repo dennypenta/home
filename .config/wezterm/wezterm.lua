@@ -39,6 +39,9 @@ return {
 			mods = "CMD",
 			action = wezterm.action.CloseCurrentTab({ confirm = false }),
 		},
+		-- Move tabs left and right
+		{ key = "{", mods = "SHIFT|ALT", action = wezterm.action.MoveTabRelative(-1) },
+		{ key = "}", mods = "SHIFT|ALT", action = wezterm.action.MoveTabRelative(1) },
 		-- SHIFT + CTRL         LeftArrow          ->   ActivatePaneDirection(Left)
 		-- SHIFT + CTRL         RightArrow         ->   ActivatePaneDirection(Right)
 		-- SHIFT + CTRL         UpArrow            ->   ActivatePaneDirection(Up)
