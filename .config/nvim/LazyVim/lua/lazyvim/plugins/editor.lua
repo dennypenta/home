@@ -1,26 +1,48 @@
-return {
+local function find_git_root(dir)
+  local uv = vim.loop
+  while dir and dir ~= "/" do
+    if uv.fs_stat(dir .. "/go.mod") then
+      return dir
+    end
+    local parent = vim.fn.fnamemodify(dir, ":h")
+    if parent == dir then
+      break
+    end -- Prevent infinite loop
+    dir = parent
+  end
+  return nil
+end
 
+return {
   -- file explorer
   {
     "nvim-neo-tree/neo-tree.nvim",
     cmd = "Neotree",
     keys = {
       {
-        "<leader>fe",
-        function()
-          require("neo-tree.command").execute({ toggle = true, dir = LazyVim.root() })
-        end,
-        desc = "Explorer NeoTree (Root Dir)",
-      },
-      {
-        "<leader>fE",
+        "<leader>e",
         function()
           require("neo-tree.command").execute({ toggle = true, dir = vim.uv.cwd() })
         end,
-        desc = "Explorer NeoTree (cwd)",
+        desc = "Explorer NeoTree (Root Dir)",
+        remap = true,
       },
-      { "<leader>e", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
-      { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
+      {
+        "<leader>E",
+        function()
+          vim.fn.getcwd()
+          local buf_dir = vim.fn.expand("%:p:h") -- Get current buffer directory
+          local root_dir = find_git_root(buf_dir) or buf_dir -- Fallback if no .git found
+
+          if root_dir == buf_dir then
+            vim.notify("Can't find a module for this buffer, opening current directory instead.", vim.log.levels.WARN)
+          end
+
+          require("neo-tree.command").execute({ toggle = true, dir = root_dir })
+        end,
+        desc = "Explorer NeoTree (Package Dir)",
+        remap = true,
+      },
       {
         "<leader>ge",
         function()
@@ -254,7 +276,7 @@ return {
     end,
   },
 
-  -- git signs highlights text that has changed since the list
+  -- git signs highlights text that has changed since the last
   -- git commit, and also lets you interactively stage & unstage
   -- hunks in a commit.
   {
