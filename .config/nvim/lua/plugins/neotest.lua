@@ -29,7 +29,7 @@ return {
     -- Example for loading neotest-golang with a custom config
     adapters = {
       ["neotest-golang"] = {
-        go_test_args = { "-count=1", "-race", "-v", "-short" },
+        go_test_args = { "-count=1", "-race", "-v" },
         dap_go_enabled = false,
       },
     },

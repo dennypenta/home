@@ -45,6 +45,7 @@ opt.shiftwidth = 4
 opt.smartindent = true
 -- Case insensitive by default,
 -- case-sensitive if a search string contain upper case letters
+opt.ignorecase = true
 opt.smartcase = true
 opt.autowrite = true -- Enable auto write
 opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
