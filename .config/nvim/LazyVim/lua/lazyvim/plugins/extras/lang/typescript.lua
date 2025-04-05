@@ -27,6 +27,14 @@ return {
         ts_ls = {
           enabled = false,
         },
+        volar = {
+          filetypes = { "typescript", "javascript", "vue" },
+          init_options = {
+            vue = {
+              hybridMode = true,
+            },
+          },
+        },
         vtsls = {
           -- explicitly add default filetypes, so that we can extend
           -- them in related extras
@@ -37,6 +45,7 @@ return {
             "typescript",
             "typescriptreact",
             "typescript.tsx",
+            "vue",
           },
           settings = {
             complete_function_calls = true,
@@ -47,6 +56,17 @@ return {
                 maxInlayHintLength = 30,
                 completion = {
                   enableServerSideFuzzyMatch = true,
+                },
+              },
+              tsserver = {
+                globalPlugins = {
+                  {
+                    name = "@vue/typescript-plugin",
+                    location = LazyVim.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
+                    languages = { "vue" },
+                    configNamespace = "typescript",
+                    enableForWorkspaceTypeScriptVersions = true,
+                  },
                 },
               },
             },
