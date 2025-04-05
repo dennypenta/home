@@ -1,13 +1,9 @@
 {
   "extras": [
     "lazyvim.plugins.extras.coding.luasnip",
-    "lazyvim.plugins.extras.coding.mini-surround",
-    "lazyvim.plugins.extras.coding.neogen",
-    "lazyvim.plugins.extras.dap.core",
     "lazyvim.plugins.extras.editor.fzf",
     "lazyvim.plugins.extras.editor.illuminate",
     "lazyvim.plugins.extras.editor.inc-rename",
-    "lazyvim.plugins.extras.editor.leap",
     "lazyvim.plugins.extras.editor.refactoring",
     "lazyvim.plugins.extras.formatting.prettier",
     "lazyvim.plugins.extras.lang.docker",
@@ -16,7 +12,6 @@
     "lazyvim.plugins.extras.lang.helm",
     "lazyvim.plugins.extras.lang.json",
     "lazyvim.plugins.extras.lang.markdown",
-    "lazyvim.plugins.extras.lang.python",
     "lazyvim.plugins.extras.lang.sql",
     "lazyvim.plugins.extras.lang.tailwind",
     "lazyvim.plugins.extras.lang.terraform",
@@ -26,14 +21,8 @@
     "lazyvim.plugins.extras.linting.eslint",
     "lazyvim.plugins.extras.lsp.neoconf",
     "lazyvim.plugins.extras.lsp.none-ls",
-    "lazyvim.plugins.extras.test.core",
-    "lazyvim.plugins.extras.ui.dashboard-nvim",
-    "lazyvim.plugins.extras.ui.treesitter-context",
-    "lazyvim.plugins.extras.util.dot",
-    "lazyvim.plugins.extras.util.project"
+    "lazyvim.plugins.extras.util.dot"
   ],
-  "news": [
-
-  ],
+  "news": [],
   "version": 7
 }

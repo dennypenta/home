@@ -78,144 +78,170 @@ vim.api.nvim_create_autocmd("User", {
   callback = restore_dap_breakpoints,
 })
 
+local function get_args(config)
+  local args = type(config.args) == "function" and (config.args() or {}) or config.args or {} --[[@as string[] | string ]]
+  local args_str = type(args) == "table" and table.concat(args, " ") or args --[[@as string]]
+
+  config = vim.deepcopy(config)
+  ---@cast args string[]
+  config.args = function()
+    local new_args = vim.fn.expand(vim.fn.input("Run with args: ", args_str)) --[[@as string]]
+    if config.type and config.type == "java" then
+      ---@diagnostic disable-next-line: return-type-mismatch
+      return new_args
+    end
+    return require("dap.utils").splitstr(new_args)
+  end
+  return config
+end
+
 return {
-  "mfussenegger/nvim-dap",
-  dependencies = {
-    {
+  {
+    "mfussenegger/nvim-dap",
+    dependencies = {
       "jbyuki/one-small-step-for-vimkind",
-      keys = {
-        {
-          "<leader>dl",
-          function()
-            require("osv").launch({ port = 8086 })
-          end,
-          desc = "Debug Lua",
+      {
+        "leoluz/nvim-dap-go",
+        opts = {
+          dap_configurations = {},
         },
       },
-    },
-    {
-      "leoluz/nvim-dap-go",
-      opts = {
-        dap_configurations = {},
+      "rcarriga/nvim-dap-ui",
+      -- virtual text for the debugger
+      {
+        "theHamsta/nvim-dap-virtual-text",
+        opts = {},
       },
     },
-    {
-      "jay-babu/mason-nvim-dap.nvim",
-      dependencies = "mason.nvim",
-      enabled = false,
-    },
-  },
 
-  optional = true,
-  opts = function(_, opts)
-    local dap = require("dap")
-    local dapui = require("dapui")
-    dap.listeners.before.event_terminated.dapui_config = function() end
-    dap.listeners.before.event_exited.dapui_config = function() end
-    -- require("overseer").enable_dap()
-    -- Configure the nlua adapter
-    dap.adapters.nlua = function(callback, config)
-      callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
-    end
-    dap.adapters.go = {
-      type = "server",
-      port = "40000",
-      executable = {
-        command = "dlv",
-        args = { "dap", "-l", "127.0.0.1:40000" },
-      },
-      enrich_config = function(finalConfig, on_config)
-        local final_config = vim.deepcopy(finalConfig)
+    optional = true,
+    opts = function(_, opts)
+      local dap = require("dap")
+      local dapui = require("dapui")
+      dap.listeners.before.event_terminated.dapui_config = function() end
+      dap.listeners.before.event_exited.dapui_config = function() end
+      -- require("overseer").enable_dap()
+      -- Configure the nlua adapter
+      dap.adapters.nlua = function(callback, config)
+        callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
+      end
+      dap.adapters.go = {
+        type = "server",
+        port = "40000",
+        executable = {
+          command = "dlv",
+          args = { "dap", "-l", "127.0.0.1:40000" },
+        },
+        enrich_config = function(finalConfig, on_config)
+          local final_config = vim.deepcopy(finalConfig)
 
-        -- Placeholder expansion for launch directives
-        local placeholders = {
-          ["${file}"] = function(_)
-            return vim.fn.expand("%:p")
-          end,
-          ["${fileBasename}"] = function(_)
-            return vim.fn.expand("%:t")
-          end,
-          ["${fileBasenameNoExtension}"] = function(_)
-            return vim.fn.fnamemodify(vim.fn.expand("%:t"), ":r")
-          end,
-          ["${fileDirname}"] = function(_)
-            return vim.fn.expand("%:p:h")
-          end,
-          ["${fileExtname}"] = function(_)
-            return vim.fn.expand("%:e")
-          end,
-          ["${relativeFile}"] = function(_)
-            return vim.fn.expand("%:.")
-          end,
-          ["${relativeFileDirname}"] = function(_)
-            return vim.fn.fnamemodify(vim.fn.expand("%:.:h"), ":r")
-          end,
-          ["${workspaceFolder}"] = function(_)
-            return vim.fn.getcwd()
-          end,
-          ["${workspaceFolderBasename}"] = function(_)
-            return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-          end,
-          ["${env:([%w_]+)}"] = function(match)
-            return os.getenv(match) or ""
-          end,
-        }
+          -- Placeholder expansion for launch directives
+          local placeholders = {
+            ["${file}"] = function(_)
+              return vim.fn.expand("%:p")
+            end,
+            ["${fileBasename}"] = function(_)
+              return vim.fn.expand("%:t")
+            end,
+            ["${fileBasenameNoExtension}"] = function(_)
+              return vim.fn.fnamemodify(vim.fn.expand("%:t"), ":r")
+            end,
+            ["${fileDirname}"] = function(_)
+              return vim.fn.expand("%:p:h")
+            end,
+            ["${fileExtname}"] = function(_)
+              return vim.fn.expand("%:e")
+            end,
+            ["${relativeFile}"] = function(_)
+              return vim.fn.expand("%:.")
+            end,
+            ["${relativeFileDirname}"] = function(_)
+              return vim.fn.fnamemodify(vim.fn.expand("%:.:h"), ":r")
+            end,
+            ["${workspaceFolder}"] = function(_)
+              return vim.fn.getcwd()
+            end,
+            ["${workspaceFolderBasename}"] = function(_)
+              return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+            end,
+            ["${env:([%w_]+)}"] = function(match)
+              return os.getenv(match) or ""
+            end,
+          }
 
-        if not final_config.env then
-          final_config.env = {}
-        end
-        -- in order to make it an object, by default an empty {} is an array and the marshalling fails
-        final_config.env["VIM"] = "1"
-
-        if final_config.envFile then
-          local filePath = final_config.envFile
-          for key, fn in pairs(placeholders) do
-            filePath = filePath:gsub(key, fn)
+          if not final_config.env then
+            final_config.env = {}
           end
+          -- in order to make it an object, by default an empty {} is an array and the marshalling fails
+          final_config.env["VIM"] = "1"
 
-          local file = io.open(filePath, "r")
-          if not file then
-            print("File not found: " .. filePath)
-          else
-            for line in file:lines() do
-              local key, value = line:match("([^=]+)=(.+)")
-              if key and value then
-                value = value:match("^['\"](.-)['\"]$") or value
-                final_config.env[key] = value
+          if final_config.envFile then
+            local filePath = final_config.envFile
+            for key, fn in pairs(placeholders) do
+              filePath = filePath:gsub(key, fn)
+            end
+
+            local file = io.open(filePath, "r")
+            if not file then
+              print("File not found: " .. filePath)
+            else
+              for line in file:lines() do
+                local key, value = line:match("([^=]+)=(.+)")
+                if key and value then
+                  value = value:match("^['\"](.-)['\"]$") or value
+                  final_config.env[key] = value
+                end
               end
             end
+            if file then
+              file:close()
+            end
           end
-          if file then
-            file:close()
+
+          -- turn on stdout for go
+          if final_config["type"] == "go" then
+            final_config["outputMode"] = "remote"
           end
-        end
 
-        -- turn on stdout for go
-        if final_config["type"] == "go" then
-          final_config["outputMode"] = "remote"
-        end
+          on_config(final_config)
+        end,
+      }
 
-        on_config(final_config)
-      end,
-    }
+      dap.configurations.lua = {
+        {
+          type = "nlua",
+          request = "attach",
+          name = "Attach to running Neovim instance",
+        },
+      }
+      dap.configurations.go = {}
+    end,
+    config = function()
+      vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
 
-    dap.configurations.lua = {
-      {
-        type = "nlua",
-        request = "attach",
-        name = "Attach to running Neovim instance",
-      },
-    }
-    dap.configurations.go = {}
-  end,
+      for name, sign in pairs(LazyVim.config.icons.dap) do
+        sign = type(sign) == "table" and sign or { sign }
+        vim.fn.sign_define(
+          "Dap" .. name,
+          { text = sign[1], texthl = sign[2] or "DiagnosticInfo", linehl = sign[3], numhl = sign[3] }
+        )
+      end
+
+      -- setup dap config by VsCode launch.json file
+      local vscode = require("dap.ext.vscode")
+      local json = require("plenary.json")
+      vscode.json_decode = function(str)
+        return vim.json.decode(json.json_strip_comments(str))
+      end
+    end,
   -- stylua: ignore
   keys = {
-    { "<leader>td", function() require("neotest").run.run({strategy = "dap"}) end, desc = "Debug Nearest" },
-    { "<leader>tD", function() require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"}) end, desc = "Debug File" },
-    { "<leader>tL", function() require("neotest").run.run_last({strategy = "dap"}) end, desc = "Debug Latest" },
-
+    { "<leader>d", "", desc = "+debug", mode = {"n", "v"} },
     { "gp", toggle_breakpoint, desc = "Toggle Breakpoint" },
-    -- { "<leader>dc", function() require("dap").continue() end, desc = "Run/Continue" },
+    { "<leader>dc", function() require("dap").continue() end, desc = "Run/Continue" },
+    { "<leader>dl", function() require("dap").run_last() end, desc = "Run Last" },
+    { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
+    { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
     { "<F1>", function() require("dap").step_over() end, desc = "Step Over" },
     { "<F2>", function() require("dap").step_into() end, desc = "Step Into" },
     { "<F3>", function() require("dap").step_out() end, desc = "Step Out" },
@@ -223,7 +249,80 @@ return {
     { "<F5>", function() require("dap").down() end, desc = "Down" },
     { "<F6>", function() require("dap").up() end, desc = "Up" },
     { "<F8>", function() require("dap").restart() end, desc = "Restart" },
-      { "<leader>dt", function() require("dap").terminate(); require("dapui").close() end, desc = "Terminate" },
+    { "<leader>dt", function() require("dap").terminate(); require("dapui").close() end, desc = "Terminate" },
+    { "<leader>dr", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
   },
-  lazy = false,
+    lazy = false,
+  },
+  {
+    "jbyuki/one-small-step-for-vimkind",
+    config = function()
+      local dap = require("dap")
+      dap.adapters.nlua = function(callback, conf)
+        local adapter = {
+          type = "server",
+          host = conf.host or "127.0.0.1",
+          port = conf.port or 8086,
+        }
+        if conf.start_neovim then
+          local dap_run = dap.run
+          dap.run = function(c)
+            adapter.port = c.port
+            adapter.host = c.host
+          end
+          require("osv").run_this()
+          dap.run = dap_run
+        end
+        callback(adapter)
+      end
+      dap.configurations.lua = {
+        {
+          type = "nlua",
+          request = "attach",
+          name = "Run this file",
+          start_neovim = {},
+        },
+        {
+          type = "nlua",
+          request = "attach",
+          name = "Attach to running Neovim instance (port = 8086)",
+          port = 8086,
+        },
+      }
+    end,
+
+    keys = {
+      {
+        "<leader>dl",
+        function()
+          require("osv").launch({ port = 8086 })
+        end,
+        desc = "Debug Lua",
+      },
+    },
+  },
+  {
+    "rcarriga/nvim-dap-ui",
+    dependencies = { "nvim-neotest/nvim-nio" },
+    -- stylua: ignore
+    keys = {
+      { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+      { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
+    },
+    opts = {},
+    config = function(_, opts)
+      local dap = require("dap")
+      local dapui = require("dapui")
+      dapui.setup(opts)
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        dapui.open({})
+      end
+      dap.listeners.before.event_terminated["dapui_config"] = function()
+        dapui.close({})
+      end
+      dap.listeners.before.event_exited["dapui_config"] = function()
+        dapui.close({})
+      end
+    end,
+  },
 }

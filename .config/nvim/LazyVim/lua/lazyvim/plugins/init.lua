@@ -32,6 +32,7 @@ return {
               nav_k = { "<C-k>", term_nav("k"), desc = "Go to Upper Window", expr = true, mode = "t" },
               nav_l = { "<C-l>", term_nav("l"), desc = "Go to Right Window", expr = true, mode = "t" },
             },
+            position = "float",
           },
         },
         toggle = { map = LazyVim.safe_keymap_set },

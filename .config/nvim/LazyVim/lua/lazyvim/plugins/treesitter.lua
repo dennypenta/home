@@ -1,14 +1,4 @@
 return {
-  {
-    "folke/which-key.nvim",
-    opts = {
-      spec = {
-        { "<BS>", desc = "Decrement Selection", mode = "x" },
-        { "<c-space>", desc = "Increment Selection", mode = { "x", "n" } },
-      },
-    },
-  },
-
   -- Treesitter is a new parser generator tool that we can
   -- use in Neovim to power faster and more accurate
   -- syntax highlighting.
@@ -29,7 +19,7 @@ return {
     end,
     cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
     keys = {
-      { "<c-space>", desc = "Increment Selection" },
+      { "<cr>", desc = "Increment Selection" },
       { "<bs>", desc = "Decrement Selection", mode = "x" },
     },
     opts_extend = { "ensure_installed" },
@@ -43,6 +33,7 @@ return {
         "c",
         "diff",
         "html",
+        "css",
         "javascript",
         "jsdoc",
         "json",
@@ -61,14 +52,15 @@ return {
         "typescript",
         "vim",
         "vimdoc",
+        "vue",
         "xml",
         "yaml",
       },
       incremental_selection = {
         enable = true,
         keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
+          init_selection = "<cr>",
+          node_incremental = "<cr>",
           scope_incremental = false,
           node_decremental = "<bs>",
         },
@@ -124,12 +116,5 @@ return {
         end
       end
     end,
-  },
-
-  -- Automatically add closing tags for HTML and JSX
-  {
-    "windwp/nvim-ts-autotag",
-    event = "LazyFile",
-    opts = {},
   },
 }

@@ -100,6 +100,32 @@ return {
               },
             },
           },
+          -- vue
+          volar = {
+            init_options = {
+              vue = {
+                hybridMode = true,
+              },
+            },
+          },
+          vtsls = {
+            filetypes = "vue",
+            settings = {
+              vtsls = {
+                tsserver = {
+                  globalPlugins = {
+                    {
+                      name = "@vue/typescript-plugin",
+                      location = LazyVim.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
+                      languages = { "vue" },
+                      configNamespace = "typescript",
+                      enableForWorkspaceTypeScriptVersions = true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         -- you can do any additional lsp server setup here
         -- return true if you don't want this server to be setup with lspconfig

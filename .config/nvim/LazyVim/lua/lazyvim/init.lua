@@ -1,5 +1,3 @@
-vim.uv = vim.uv or vim.loop
-
 local M = {}
 
 ---@param opts? LazyVimConfig

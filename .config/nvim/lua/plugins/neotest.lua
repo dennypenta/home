@@ -30,19 +30,11 @@ return {
     adapters = {
       ["neotest-golang"] = {
         go_test_args = { "-count=1", "-race", "-v" },
-        dap_go_enabled = false,
       },
     },
     status = { virtual_text = true },
     output = { open_on_run = true },
     quickfix = {
-      -- open = function()
-      --   if LazyVim.has("trouble.nvim") then
-      --     require("trouble").open({ mode = "quickfix", focus = false })
-      --   else
-      --     vim.cmd("copen")
-      --   end
-      -- end,
       open = false,
     },
     -- See all config options with :h neotest.Config
@@ -107,20 +99,6 @@ return {
         end
       end
     end
-    opts.consumers.live = function(client)
-      local M = {}
-      function M.open(opts)
-        opts = opts or {}
-        local pos = neotest.run.get_tree_from_args(opts)
-        if pos and client:is_running(pos:data().id) then
-          neotest.run.attach()
-        else
-          neotest.output.open({ enter = true })
-        end
-      end
-
-      return M
-    end
 
     if opts.adapters then
       local adapters = {}
@@ -148,26 +126,14 @@ return {
           adapters[#adapters + 1] = adapter
         end
       end
-      vim.api.nvim_create_user_command("NTestOutput", function()
-        neotest.run.run()
-        local handle
-        handle, _ = vim.loop.spawn(
-          "sleep",
-          { args = { "3s" }, stdio = nil },
-          vim.schedule_wrap(function(_)
-            handle:close()
-            neotest.live.open()
-          end)
-        )
-      end, {})
       opts.adapters = adapters
-      neotest.setup(opts)
     end
+
+    neotest.setup(opts)
   end,
   -- stylua: ignore
   keys = {
     {"<leader>t", "", desc = "+test"},
-    { "<leader>tI", function() require("plugins.consumers.output_live").open() end, desc = "Run File (Neotest)" },
     { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run File (Neotest)" },
     { "<leader>tp", function() require("neotest").run.run(vim.fn.expand("%:p:h")) end, desc = "Run Package (Neotest)" },
     { "<leader>tT", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "Run All Test Files (Neotest)" },
@@ -177,8 +143,10 @@ return {
     { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Output (Neotest)" },
     { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "Toggle Output Panel (Neotest)" },
     { "<leader>tS", function() require("neotest").run.stop() end, desc = "Stop (Neotest)" },
-    -- { "<leader>tw", function() require("neotest").watch.toggle(vim.fn.expand("%")) end, desc = "Toggle Watch (Neotest)" },
     { "[n", function() require("neotest").jump.prev({ status = "failed" }) end, desc = "Jump to previous failed test" },
     { "]n", function() require("neotest").jump.next({ status = "failed" }) end, desc = "Jump to next failed test" },
+    { "<leader>td", function() require("neotest").run.run({strategy = "dap"}) end, desc = "Debug Nearest" },
+    { "<leader>tD", function() require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"}) end, desc = "Debug File" },
+    { "<leader>tL", function() require("neotest").run.run_last({strategy = "dap"}) end, desc = "Debug Latest" },
   },
 }

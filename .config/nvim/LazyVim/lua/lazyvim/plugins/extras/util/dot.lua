@@ -1,11 +1,3 @@
----@type string
-local xdg_config = vim.env.XDG_CONFIG_HOME or vim.env.HOME .. "/.config"
-
----@param path string
-local function have(path)
-  return vim.uv.fs_stat(xdg_config .. "/" .. path) ~= nil
-end
-
 return {
   recommended = true,
   desc = "Language support for dotfiles",
@@ -47,18 +39,6 @@ return {
       vim.treesitter.language.register("bash", "kitty")
 
       add("git_config")
-
-      if have("hypr") then
-        add("hyprlang")
-      end
-
-      if have("fish") then
-        add("fish")
-      end
-
-      if have("rofi") or have("wofi") then
-        add("rasi")
-      end
     end,
   },
 }

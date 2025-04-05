@@ -1,24 +1,14 @@
 return {
-
-  -- tokyonight
-  {
-    "folke/tokyonight.nvim",
-    lazy = true,
-    opts = { style = "moon" },
-  },
-
-  -- catppuccin
   {
     "catppuccin/nvim",
-    lazy = true,
     name = "catppuccin",
+    priority = 1000,
     opts = {
+      flavour = "macchiato",
       integrations = {
-        aerial = true,
-        alpha = true,
         cmp = true,
+        bufferline = true,
         dashboard = true,
-        flash = true,
         grug_far = true,
         gitsigns = true,
         headlines = true,
@@ -38,29 +28,23 @@ return {
             information = { "undercurl" },
           },
         },
-        navic = { enabled = true, custom_bg = "lualine" },
         neotest = true,
         neotree = true,
         noice = true,
         notify = true,
         semantic_tokens = true,
-        snacks = true,
-        telescope = true,
+        fzf = true,
         treesitter = true,
         treesitter_context = true,
         which_key = true,
       },
     },
-    specs = {
-      {
-        "akinsho/bufferline.nvim",
-        optional = true,
-        opts = function(_, opts)
-          if (vim.g.colors_name or ""):find("catppuccin") then
-            opts.highlights = require("catppuccin.groups.integrations.bufferline").get()
-          end
-        end,
-      },
+    lazy = false,
+  },
+  {
+    "LazyVim/LazyVim",
+    opts = {
+      colorscheme = "catppuccin",
     },
   },
 }
