@@ -1,3 +1,29 @@
+vim.g.lazyvim_picker = "fzf"
+
+---@class FzfLuaOpts: lazyvim.util.pick.Opts
+---@field cmd string?
+
+---@type LazyPicker
+local picker = {
+  name = "fzf",
+  commands = {
+    files = "files",
+  },
+
+  ---@param command string
+  ---@param opts? FzfLuaOpts
+  open = function(command, opts)
+    opts = opts or {}
+    if opts.cmd == nil and command == "git_files" and opts.show_untracked then
+      opts.cmd = "git ls-files --exclude-standard --cached --others"
+    end
+    return require("fzf-lua")[command](opts)
+  end,
+}
+if not LazyVim.pick.register(picker) then
+  return {}
+end
+
 local function symbols_filter(entry, ctx)
   if ctx.symbols_filter == nil then
     ctx.symbols_filter = LazyVim.config.get_kind_filter(ctx.bufnr) or false

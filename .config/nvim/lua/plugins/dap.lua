@@ -23,7 +23,6 @@ local function set_restored_breakpoints(buf, file)
   if not bps then
     return
   end
-  print(vim.inspect(bps))
   for _, bp in pairs(bps) do
     local line = bp.line
     local opts = {
@@ -99,6 +98,7 @@ return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
+      "williamboman/mason.nvim",
       "jbyuki/one-small-step-for-vimkind",
       {
         "leoluz/nvim-dap-go",
@@ -113,7 +113,6 @@ return {
         opts = {},
       },
     },
-
     optional = true,
     opts = function(_, opts)
       local dap = require("dap")
@@ -125,6 +124,56 @@ return {
       dap.adapters.nlua = function(callback, config)
         callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
       end
+      if not dap.adapters["pwa-node"] then
+        dap.adapters["pwa-node"] = {
+          type = "server",
+          host = "localhost",
+          port = "${port}",
+          executable = {
+            command = "node",
+            -- 💀 Make sure to update this path to point to your installation
+            args = {
+              LazyVim.get_pkg_path("js-debug-adapter", "/js-debug/src/dapDebugServer.js"),
+              "${port}",
+            },
+          },
+        }
+      end
+      if not dap.adapters["pwa-chrome"] then
+        dap.adapters["pwa-chrome"] = {
+          type = "server",
+          host = "localhost",
+          port = "${port}",
+          executable = {
+            command = "node",
+            -- 💀 Make sure to update this path to point to your installation
+            args = {
+              LazyVim.get_pkg_path("js-debug-adapter", "/js-debug/src/dapDebugServer.js"),
+              "${port}",
+            },
+          },
+        }
+      end
+      if not dap.adapters["node"] then
+        dap.adapters["node"] = function(cb, config)
+          if config.type == "node" then
+            config.type = "pwa-node"
+          end
+          local nativeAdapter = dap.adapters["pwa-node"]
+          if type(nativeAdapter) == "function" then
+            nativeAdapter(cb, config)
+          else
+            cb(nativeAdapter)
+          end
+        end
+      end
+      local js_filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
+
+      local vscode = require("dap.ext.vscode")
+      vscode.type_to_filetypes["node"] = js_filetypes
+      vscode.type_to_filetypes["pwa-node"] = js_filetypes
+      vscode.type_to_filetypes["pwa-chrome"] = js_filetypes
+
       dap.adapters.go = {
         type = "server",
         port = "40000",
@@ -134,7 +183,6 @@ return {
         },
         enrich_config = function(finalConfig, on_config)
           local final_config = vim.deepcopy(finalConfig)
-
           -- Placeholder expansion for launch directives
           local placeholders = {
             ["${file}"] = function(_)
@@ -226,7 +274,6 @@ return {
           { text = sign[1], texthl = sign[2] or "DiagnosticInfo", linehl = sign[3], numhl = sign[3] }
         )
       end
-
       -- setup dap config by VsCode launch.json file
       local vscode = require("dap.ext.vscode")
       local json = require("plenary.json")

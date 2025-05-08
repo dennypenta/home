@@ -1,17 +1,3 @@
-local function find_git_root(dir)
-  while dir and dir ~= "/" do
-    if vim.uv.fs_stat(dir .. "/go.mod") then
-      return dir
-    end
-    local parent = vim.fn.fnamemodify(dir, ":h")
-    if parent == dir then
-      break
-    end -- Prevent infinite loop
-    dir = parent
-  end
-  return nil
-end
-
 return {
   "nvim-neo-tree/neo-tree.nvim",
   cmd = "Neotree",
@@ -28,8 +14,10 @@ return {
       "<leader>E",
       function()
         vim.fn.getcwd()
-        local buf_dir = vim.fn.expand("%:p:h") -- Get current buffer directory
-        local root_dir = find_git_root(buf_dir) or buf_dir -- Fallback if no .git found
+        -- Get current buffer directory
+        local buf_dir = vim.fn.expand("%:p:h")
+        -- Fallback if no .git found
+        local root_dir = vim.fs.root(0, "go.mod") or buf_dir
 
         if root_dir == buf_dir then
           vim.notify("Can't find a module for this buffer, opening current directory instead.", vim.log.levels.WARN)

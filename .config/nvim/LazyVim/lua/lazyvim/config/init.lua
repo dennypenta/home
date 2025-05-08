@@ -183,10 +183,6 @@ function M.setup(opts)
       LazyVim.format.setup()
       LazyVim.root.setup()
 
-      vim.api.nvim_create_user_command("LazyExtras", function()
-        LazyVim.extras.show()
-      end, { desc = "Manage LazyVim extras" })
-
       vim.api.nvim_create_user_command("LazyHealth", function()
         vim.cmd([[Lazy! load all]])
         vim.cmd([[checkhealth]])
