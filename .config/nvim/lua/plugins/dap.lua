@@ -113,6 +113,7 @@ return {
         opts = {},
       },
     },
+
     optional = true,
     opts = function(_, opts)
       local dap = require("dap")
@@ -174,6 +175,26 @@ return {
       vscode.type_to_filetypes["pwa-node"] = js_filetypes
       vscode.type_to_filetypes["pwa-chrome"] = js_filetypes
 
+      for _, language in ipairs(js_filetypes) do
+        if not dap.configurations[language] then
+          dap.configurations[language] = {
+            {
+              type = "pwa-node",
+              request = "launch",
+              name = "Launch file",
+              program = "${file}",
+              cwd = "${workspaceFolder}",
+            },
+            {
+              type = "pwa-node",
+              request = "attach",
+              name = "Attach",
+              processId = require("dap.utils").pick_process,
+              cwd = "${workspaceFolder}",
+            },
+          }
+        end
+      end
       dap.adapters.go = {
         type = "server",
         port = "40000",
@@ -183,6 +204,7 @@ return {
         },
         enrich_config = function(finalConfig, on_config)
           local final_config = vim.deepcopy(finalConfig)
+
           -- Placeholder expansion for launch directives
           local placeholders = {
             ["${file}"] = function(_)
@@ -274,6 +296,7 @@ return {
           { text = sign[1], texthl = sign[2] or "DiagnosticInfo", linehl = sign[3], numhl = sign[3] }
         )
       end
+
       -- setup dap config by VsCode launch.json file
       local vscode = require("dap.ext.vscode")
       local json = require("plenary.json")
