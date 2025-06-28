@@ -1,5 +1,27 @@
 vim.g.lazyvim_picker = "fzf"
 
+local original_jump = vim.lsp.util.jump_to_location
+
+vim.lsp.util.jump_to_location = function(location, open_split, reuse_win, offset_encoding)
+  local ok, err = pcall(original_jump, location, open_split, reuse_win, offset_encoding)
+  if not ok then
+    if type(err) == "string" and err:match("E325") then
+      local uri = location.uri or location.targetUri
+      local fname = vim.uri_to_fname(uri)
+
+      vim.notify("Swap conflict on: " .. fname .. ", trying to recover", vim.log.levels.WARN)
+      local recover_cmd = "recover " .. fname
+      vim.cmd("silent! " .. recover_cmd)
+
+      -- If still failed, force edit
+      vim.cmd("e! " .. fname)
+      vim.notify("Opened with swap file deleted", vim.log.levels.INFO)
+    else
+      vim.notify("jump_to_location error: " .. err, vim.log.levels.ERROR)
+    end
+  end
+end
+
 ---@class FzfLuaOpts: lazyvim.util.pick.Opts
 ---@field cmd string?
 

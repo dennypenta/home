@@ -18,6 +18,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # node
 export NODE_OPTIONS="--max-old-space-size=6096"
 export NVM_DIR="$HOME/.nvm"
+export PATH=~/.npm-global/bin:$PATH
   [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
   [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_co
@@ -202,3 +203,5 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+. "$HOME/.local/bin/env"
