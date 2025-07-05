@@ -1,0 +1,5 @@
+alt - b : open -a 'safari'
+alt - t : open -a 'wezterm'
+alt - y : open -a 'spotify'
+alt - f : open -a 'finder'
+
