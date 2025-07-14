@@ -31,6 +31,7 @@ return {
       ["neotest-golang"] = {
         go_test_args = { "-count=1", "-race", "-v" },
       },
+      ["rustaceanvim.neotest"] = {},
     },
     status = { virtual_text = true },
     output = { open_on_run = true },

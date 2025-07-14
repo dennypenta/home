@@ -7,3 +7,7 @@ __debug_bin
 .mirrord/
 .run/
 
+.claude/projects/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/todos/

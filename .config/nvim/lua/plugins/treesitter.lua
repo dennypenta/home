@@ -72,6 +72,9 @@ return {
         "astro",
         "css",
         "svelte",
+        "cpp",
+        "rust",
+        "ron",
       },
       incremental_selection = {
         enable = true,
