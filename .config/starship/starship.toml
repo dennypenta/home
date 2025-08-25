@@ -1,16 +1,11 @@
 format = """
 [░▒▓](os_bg)\
 $kubernetes\
-[ ](bg:#272640 fg:#312244)\
 $directory\
-[ ](bg:#212f45 fg:#272640)\
 $git_branch\
-[ ](bg:#1b3a4b fg:#212f45)\
 $time\
-[ ](bg:#144552 fg:#1b3a4b)\
 $cmd_duration\
 $status\
-[ ](bg:os_bg fg:#144552)\
 $line_break\
 $character\
 """
@@ -18,10 +13,10 @@ $character\
 [kubernetes]
 format = '[  $context \($namespace\)]($style)'
 disabled = false
-style = "fg:#979dac bg:#312244"
+style = "fg:#87a987 bg:#0d0c0c"
 
 [directory]
-style = "fg:#979dac bg:#272640"
+style = "fg:#8a9a7b bg:#12120f"
 format = "[ $path ]($style)"
 truncation_length = 0
 truncate_to_repo = false
@@ -35,22 +30,22 @@ home_symbol = "\ueb06"
 
 [git_branch]
 symbol = ""
-style = "fg:#979dac bg:#212f45"
+style = "fg:#7a8382 bg:#1D1C19"
 format = '[ $symbol $branch ]($style)'
 
 [time]
 disabled = false
 time_format = '%H:%M:%S'
 format = '[  $time ]($style)'
-style = "fg:#979dac bg:#1b3a4b"
+style = "fg:#8ba4b0 bg:#181616"
 
 [cmd_duration]
 min_time = 1
-style = "fg:#979dac bg:#144552"
+style = "fg:#8992a7 bg:#282727"
 format = "[ $duration]($style)"
 
 [status]
-format = '[ $symbol$common_meaning$signal_name$maybe_int ](fg:#979dac bg:#144552)'
+format = '[ $symbol$common_meaning$signal_name$maybe_int ](fg:#979dac bg:#393836)'
 success_symbol = "🌙"
 disabled = false
 

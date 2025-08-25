@@ -1,3 +1,5 @@
+local Bufs = require("pkg.bufs")
+
 local function augroup(name)
   return vim.api.nvim_create_augroup(name, { clear = true })
 end
@@ -16,7 +18,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    (vim.hl or vim.highlight).on_yank()
+    vim.highlight.on_yank()
   end,
 })
 
@@ -36,14 +38,16 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   callback = function(event)
     local exclude = { "gitcommit" }
     local buf = event.buf
-    if vim.tbl_contains(exclude, vim.bo[buf].filetype) or vim.b[buf].lazyvim_last_loc then
+    if vim.tbl_contains(exclude, vim.bo[buf].filetype) or vim.b[buf].last_loc then
       return
     end
-    vim.b[buf].lazyvim_last_loc = true
+    vim.b[buf].last_loc = true
     local mark = vim.api.nvim_buf_get_mark(buf, '"')
     local lcount = vim.api.nvim_buf_line_count(buf)
     if mark[1] > 0 and mark[1] <= lcount then
       pcall(vim.api.nvim_win_set_cursor, 0, mark)
+    elseif mark[1] > lcount then
+      pcall(vim.api.nvim_win_set_cursor, 0, { lcount, 0 })
     end
   end,
 })
@@ -52,21 +56,21 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup("close_with_q"),
   pattern = {
-    "PlenaryTestPopup",
     "checkhealth",
-    "dbout",
-    "gitsigns-blame",
     "grug-far",
     "help",
-    "lspinfo",
     "neotest-output",
     "neotest-output-panel",
     "neotest-summary",
+    "quicktest-output",
+    "quicktest-summary",
+    -- TODO: add quicktest-split filetype, find the ft itself first
     "notify",
-    "qf",
-    "spectre_panel",
     "startuptime",
-    "tsplayground",
+    "man",
+    "lazy",
+    "qf",
+    "vim",
   },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
@@ -80,15 +84,6 @@ vim.api.nvim_create_autocmd("FileType", {
         desc = "Quit buffer",
       })
     end)
-  end,
-})
-
--- Make it easier to close man-files when opened inline
-vim.api.nvim_create_autocmd("FileType", {
-  group = augroup("man_unlisted"),
-  pattern = { "man" },
-  callback = function(event)
-    vim.bo[event.buf].buflisted = false
   end,
 })
 
@@ -111,24 +106,23 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
   end,
 })
 
--- Auto create dir when saving a file, in case some intermediate directory does not exist
-vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-  group = augroup("auto_create_dir"),
-  callback = function(event)
-    if event.match:match("^%w%w+:[\\/][\\/]") then
-      return
-    end
-    local file = vim.uv.fs_realpath(event.match) or event.match
-    vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
-  end,
-})
-
+-- TODO: add deletion handling
 -- Auto save on finished editing
-vim.api.nvim_create_autocmd({ "InsertLeave" }, {
+vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged", "TextChangedT" }, {
   group = augroup("autosave"),
   callback = function()
     if vim.bo.modified then
       vim.cmd("silent! write")
     end
+  end,
+})
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  pattern = "*",
+  callback = function()
+    local Colors = require("config.colors")
+    -- TODO: move to all the colors
+    vim.api.nvim_set_hl(0, 'LspCodeLens', { fg = Colors.lens, bg = nil, bold = true })
+    vim.api.nvim_set_hl(0, 'LspCodeLensSign', { fg = Colors.lensIcon, bg = nil, bold = true })
   end,
 })

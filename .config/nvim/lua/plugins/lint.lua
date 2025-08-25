@@ -1,103 +1,153 @@
+local root_linters = {
+  go = "golangci_root",
+}
+
+function table.copy(t)
+  local u = {}
+  for k, v in pairs(t) do u[k] = v end
+  setmetatable(u, getmetatable(t))
+  return u
+end
+
+local qlist = {}
+
+local function make_golangcilint_root(original)
+  local golangci_root = table.copy(original)
+  golangci_root.args[#golangci_root.args] = function()
+    return vim.uv.cwd() .. "/..."
+  end
+  golangci_root.parser = function(output, bufnr, cwd)
+    if output == '' then
+      return {}
+    end
+    local decoded = vim.json.decode(output)
+    if decoded["Issues"] == nil or type(decoded["Issues"]) == 'userdata' then
+      return {}
+    end
+
+    local q_severities = {
+      error = "E",
+      warning = "W",
+      refactor = "I",
+      convention = "H",
+    }
+    local severities = {
+      E = vim.diagnostic.severity.ERROR,
+      W = vim.diagnostic.severity.WARN,
+      I = vim.diagnostic.severity.INFO,
+      H = vim.diagnostic.severity.HINT,
+    }
+
+    local diagnostics = {}
+    local other_ds = {}
+    qlist = {}
+    for _, item in ipairs(decoded["Issues"]) do
+      local curfile = vim.api.nvim_buf_get_name(bufnr)
+      local curfile_abs = vim.fn.fnamemodify(curfile, ":p")
+      local curfile_norm = vim.fs.normalize(curfile_abs)
+
+      local lintedfile = cwd .. "/" .. item.Pos.Filename
+      local lintedfile_abs = vim.fn.fnamemodify(lintedfile, ":p")
+      local lintedfile_norm = vim.fs.normalize(lintedfile_abs)
+
+      local qitem = {
+        filename = lintedfile_norm,
+        lnum = item.Pos.Line > 0 and item.Pos.Line - 1 or 0,
+        col = item.Pos.Column > 0 and item.Pos.Column - 1 or 0,
+        end_lnum = item.Pos.Line > 0 and item.Pos.Line - 1 or 0,
+        end_col = item.Pos.Column > 0 and item.Pos.Column - 1 or 0,
+        source = item.FromLinter,
+        text = item.Text,
+        type = q_severities[item.Severity] or "W",
+      }
+      local buf = vim.fn.bufnr(item.Pos.Filename)
+      if curfile_norm == item.Pos.Filename or curfile_norm == lintedfile_norm then
+        -- only publish if those are the current file diagnostics
+        table.insert(diagnostics, {
+          lnum = qitem.lnum,
+          col = qitem.col,
+          end_lnum = qitem.end_lnum,
+          end_col = qitem.end_col,
+          severity = severities[qitem.type] or vim.diagnostic.severity.WARN,
+          source = qitem.source,
+          message = qitem.text,
+        })
+      elseif buf > -1 then
+        if other_ds[buf] == nil then other_ds[buf] = {} end
+        table.insert(other_ds[buf], {
+          lnum = qitem.lnum,
+          col = qitem.col,
+          end_lnum = qitem.end_lnum,
+          end_col = qitem.end_col,
+          severity = severities[qitem.type] or vim.diagnostic.severity.WARN,
+          source = qitem.source,
+          message = qitem.text,
+        })
+      end
+      -- but collect everything to qlist
+      table.insert(qlist, qitem)
+    end
+
+    for buf, ds in pairs(other_ds) do
+      vim.diagnostic.set(require("lint").get_namespace("golangcilint"), buf, ds)
+    end
+    vim.fn.setqflist({}, 'r', { title = 'Go Lint Errors', items = qlist })
+    vim.api.nvim_command('copen')
+
+    -- populate diagnostic on opening a buffer
+    vim.api.nvim_create_autocmd("BufReadPost", {
+      group = vim.api.nvim_create_augroup("nvim-lint", { clear = true }),
+      callback = function(args)
+        local ds = {}
+        for _, item in pairs(qlist) do
+          if item.filename == args.file then
+            table.insert(ds, {
+              lnum = item.lnum,
+              col = item.col,
+              end_lnum = item.end_lnum,
+              end_col = item.end_col,
+              severity = severities[item.type] or vim.diagnostic.severity.WARN,
+              source = item.source,
+              message = item.text,
+            })
+          end
+        end
+        vim.diagnostic.set(require("lint").get_namespace("golangcilint"), args.buf, ds)
+      end,
+    })
+
+    return diagnostics
+  end
+
+  return golangci_root
+end
+
 return {
   "mfussenegger/nvim-lint",
-  event = "LazyFile",
-  opts = {
-    -- Event to trigger linters
-    events = { "BufWritePost", "BufReadPost", "InsertLeave" },
-    linters_by_ft = {
-      -- Use the "*" filetype to run linters on all filetypes.
-      -- ['*'] = { 'global linter' },
-      -- Use the "_" filetype to run linters on filetypes that don't have other linters configured.
-      -- ['_'] = { 'fallback linter' },
-      -- ["*"] = { "typos" },
-      dockerfile = { "hadolint" },
-      terraform = { "terraform_validate" },
-      tf = { "terraform_validate" },
-      sql = { "sqlfluff" },
-      mysql = { "sqlfluff" },
-      plsql = { "sqlfluff" },
-      markdown = { "markdownlint-cli2" },
-    },
-    -- LazyVim extension to easily override linter options
-    -- or add custom linters.
-    ---@type table<string,table>
-    linters = {
-      -- -- Example of using selene only when a selene.toml file is present
-      -- selene = {
-      --   -- `condition` is another LazyVim extension that allows you to
-      --   -- dynamically enable/disable linters based on the context.
-      --   condition = function(ctx)
-      --     return vim.fs.find({ "selene.toml" }, { path = ctx.filename, upward = true })[1]
-      --   end,
-      -- },
-    },
-  },
-  config = function(_, opts)
-    local M = {}
-
+  pin = true,
+  config = function()
     local lint = require("lint")
-    for name, linter in pairs(opts.linters) do
-      if type(linter) == "table" and type(lint.linters[name]) == "table" then
-        lint.linters[name] = vim.tbl_deep_extend("force", lint.linters[name], linter)
-        if type(linter.prepend_args) == "table" then
-          lint.linters[name].args = lint.linters[name].args or {}
-          vim.list_extend(lint.linters[name].args, linter.prepend_args)
-        end
-      else
-        lint.linters[name] = linter
-      end
-    end
-    lint.linters_by_ft = opts.linters_by_ft
+    lint.linters_by_ft = {
+      go = { 'golangcilint' },
+    }
 
-    function M.debounce(ms, fn)
-      local timer = vim.uv.new_timer()
-      return function(...)
-        local argv = { ... }
-        timer:start(ms, 0, function()
-          timer:stop()
-          vim.schedule_wrap(fn)(unpack(argv))
-        end)
-      end
-    end
+    lint.linters.golangci_root = make_golangcilint_root(lint.linters.golangcilint)
 
-    function M.lint()
-      -- Use nvim-lint's logic first:
-      -- * checks if linters exist for the full filetype first
-      -- * otherwise will split filetype by "." and add all those linters
-      -- * this differs from conform.nvim which only uses the first filetype that has a formatter
-      local names = lint._resolve_linter_by_ft(vim.bo.filetype)
-
-      -- Create a copy of the names table to avoid modifying the original.
-      names = vim.list_extend({}, names)
-
-      -- Add fallback linters.
-      if #names == 0 then
-        vim.list_extend(names, lint.linters_by_ft["_"] or {})
-      end
-
-      -- Add global linters.
-      vim.list_extend(names, lint.linters_by_ft["*"] or {})
-
-      -- Filter out linters that don't exist or don't match the condition.
-      local ctx = { filename = vim.api.nvim_buf_get_name(0) }
-      ctx.dirname = vim.fn.fnamemodify(ctx.filename, ":h")
-      names = vim.tbl_filter(function(name)
-        local linter = lint.linters[name]
-        if not linter then
-          LazyVim.warn("Linter not found: " .. name, { title = "nvim-lint" })
-        end
-        return linter and not (type(linter) == "table" and linter.condition and not linter.condition(ctx))
-      end, names)
-
-      -- Run linters.
-      if #names > 0 then
-        lint.try_lint(names)
-      end
-    end
-
-    vim.api.nvim_create_autocmd(opts.events, {
-      group = vim.api.nvim_create_augroup("nvim-lint", { clear = true }),
-      callback = M.debounce(100, M.lint),
+    vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+      callback = function()
+        lint.try_lint()
+      end,
     })
   end,
+  keys = {
+    {
+      -- TODO: display when it's running: https://github.com/mfussenegger/nvim-lint?tab=readme-ov-file#get-the-current-running-linters-for-your-buffer
+      "<leader>cl",
+      function()
+        local linter = root_linters[vim.bo.filetype]
+        require("lint").try_lint(linter)
+      end,
+      desc = "Lint"
+    },
+  },
 }

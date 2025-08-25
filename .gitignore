@@ -11,3 +11,4 @@ __debug_bin
 .claude/shell-snapshots/
 .claude/statsig/
 .claude/todos/
+.config/nvim/undodir/

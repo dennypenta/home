@@ -1,7 +1,0 @@
-{
-  "if err": {
-    "prefix": "ifer",
-    "body": "if ${1:err} != nil { $0 }",
-    "description": "Check for an error without return statement"
-  }
-}

@@ -54,13 +54,15 @@ return {
 	},
 
 	-- theme
-	window_background_opacity = 1.0,
+	window_background_opacity = 0.88,
 	font = wezterm.font_with_fallback({
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = false },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = false },
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = true },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = true },
 	}),
-	color_scheme = "nightfox",
+	-- color_scheme = "nightfox",
+    color_scheme = 'Kanagawa Dragon (Gogh)',
+    -- color_scheme ='Catppuccin Latte',
 	font_size = 14.0,
 }

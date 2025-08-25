@@ -1,290 +1,262 @@
-vim.g.lazyvim_picker = "fzf"
-
-local original_jump = vim.lsp.util.jump_to_location
-
-vim.lsp.util.jump_to_location = function(location, open_split, reuse_win, offset_encoding)
-  local ok, err = pcall(original_jump, location, open_split, reuse_win, offset_encoding)
-  if not ok then
-    if type(err) == "string" and err:match("E325") then
-      local uri = location.uri or location.targetUri
-      local fname = vim.uri_to_fname(uri)
-
-      vim.notify("Swap conflict on: " .. fname .. ", trying to recover", vim.log.levels.WARN)
-      local recover_cmd = "recover " .. fname
-      vim.cmd("silent! " .. recover_cmd)
-
-      -- If still failed, force edit
-      vim.cmd("e! " .. fname)
-      vim.notify("Opened with swap file deleted", vim.log.levels.INFO)
-    else
-      vim.notify("jump_to_location error: " .. err, vim.log.levels.ERROR)
-    end
-  end
-end
-
----@class FzfLuaOpts: lazyvim.util.pick.Opts
----@field cmd string?
-
----@type LazyPicker
-local picker = {
-  name = "fzf",
-  commands = {
-    files = "files",
-  },
-
-  ---@param command string
-  ---@param opts? FzfLuaOpts
-  open = function(command, opts)
-    opts = opts or {}
-    if opts.cmd == nil and command == "git_files" and opts.show_untracked then
-      opts.cmd = "git ls-files --exclude-standard --cached --others"
-    end
-    return require("fzf-lua")[command](opts)
-  end,
-}
-if not LazyVim.pick.register(picker) then
-  return {}
-end
-
-local function symbols_filter(entry, ctx)
-  if ctx.symbols_filter == nil then
-    ctx.symbols_filter = LazyVim.config.get_kind_filter(ctx.bufnr) or false
-  end
-  if ctx.symbols_filter == false then
-    return true
-  end
-  return vim.tbl_contains(ctx.symbols_filter, entry.kind)
-end
+local ignore_pattern = { ".git" }
 
 return {
   "ibhagwan/fzf-lua",
-  cmd = "FzfLua",
-  opts = function(_, opts)
-    local config = require("fzf-lua.config")
-    local actions = require("fzf-lua.actions")
-
-    -- Quickfix
-    config.defaults.keymap.fzf["ctrl-q"] = "select-all+accept"
-    config.defaults.keymap.fzf["ctrl-u"] = "half-page-up"
-    config.defaults.keymap.fzf["ctrl-d"] = "half-page-down"
-    config.defaults.keymap.fzf["ctrl-x"] = "jump"
-    config.defaults.keymap.fzf["ctrl-f"] = "preview-page-down"
-    config.defaults.keymap.fzf["ctrl-b"] = "preview-page-up"
-    config.defaults.keymap.builtin["<c-n>"] = "preview-page-down"
-    config.defaults.keymap.builtin["<c-p>"] = "preview-page-up"
-
-    -- Trouble
-    if LazyVim.has("trouble.nvim") then
-      config.defaults.actions.files["ctrl-t"] = require("trouble.sources.fzf").actions.open
-    end
-
-    -- Toggle root dir / cwd
-    config.defaults.actions.files["ctrl-r"] = function(_, ctx)
-      local o = vim.deepcopy(ctx.__call_opts)
-      o.root = o.root == false
-      o.cwd = nil
-      o.buf = ctx.__CTX.bufnr
-      LazyVim.pick.open(ctx.__INFO.cmd, o)
-    end
-    config.defaults.actions.files["alt-c"] = config.defaults.actions.files["ctrl-r"]
-    config.set_action_helpstr(config.defaults.actions.files["ctrl-r"], "toggle-root-dir")
-
-    local img_previewer ---@type string[]?
-    for _, v in ipairs({
-      { cmd = "ueberzug", args = {} },
-      { cmd = "chafa", args = { "{file}", "--format=symbols" } },
-      { cmd = "viu", args = { "-b" } },
-    }) do
-      if vim.fn.executable(v.cmd) == 1 then
-        img_previewer = vim.list_extend({ v.cmd }, v.args)
-        break
-      end
-    end
-
-    return {
-      "default-title",
-      fzf_colors = true,
-      fzf_opts = {
-        ["--no-scrollbar"] = true,
-      },
-      defaults = {
-        -- formatter = "path.filename_first",
-        formatter = "path.dirname_first",
-      },
-      previewers = {
-        builtin = {
-          extensions = {
-            ["png"] = img_previewer,
-            ["jpg"] = img_previewer,
-            ["jpeg"] = img_previewer,
-            ["gif"] = img_previewer,
-            ["webp"] = img_previewer,
-          },
-          ueberzug_scaler = "fit_contain",
-        },
-      },
-      -- Custom LazyVim option to configure vim.ui.select
-      ui_select = function(fzf_opts, items)
-        return vim.tbl_deep_extend("force", fzf_opts, {
-          prompt = " ",
-          winopts = {
-            title = " " .. vim.trim((fzf_opts.prompt or "Select"):gsub("%s*:%s*$", "")) .. " ",
-            title_pos = "center",
-          },
-        }, fzf_opts.kind == "codeaction" and {
-          winopts = {
-            layout = "vertical",
-            -- height is number of items minus 15 lines for the preview, with a max of 80% screen height
-            height = math.floor(math.min(vim.o.lines * 0.8 - 16, #items + 2) + 0.5) + 16,
-            width = 0.5,
-            preview = not vim.tbl_isempty(LazyVim.lsp.get_clients({ bufnr = 0, name = "vtsls" })) and {
-              layout = "vertical",
-              vertical = "down:15,border-top",
-              hidden = "hidden",
-            } or {
-              layout = "vertical",
-              vertical = "down:15,border-top",
-            },
-          },
-        } or {
-          winopts = {
-            width = 0.5,
-            -- height is number of items, with a max of 80% screen height
-            height = math.floor(math.min(vim.o.lines * 0.8, #items + 2) + 0.5),
-          },
-        })
-      end,
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  event = { "BufEnter" },
+  pin = true,
+  config = function()
+    local actions = require("fzf-lua").actions
+    require("fzf-lua").setup({
       winopts = {
-        width = 0.8,
-        height = 0.8,
-        row = 0.5,
-        col = 0.5,
-        preview = {
-          scrollchars = { "┃", "" },
-        },
+        fullscreen = true,
       },
       files = {
-        cwd_prompt = false,
-        actions = {
-          ["alt-i"] = { actions.toggle_ignore },
-          ["alt-h"] = { actions.toggle_hidden },
-        },
+        no_ignore = false,
+        hidden = true,
       },
       grep = {
-        actions = {
-          ["alt-i"] = { actions.toggle_ignore },
-          ["alt-h"] = { actions.toggle_hidden },
+        no_ignore = false,
+        hidden = true,
+
+      },
+      actions = {
+        files = {
+          true, -- uncomment to inherit all the below in your custom config
+          -- Pickers inheriting these actions:
+          --   files, git_files, git_status, grep, lsp, oldfiles, quickfix, loclist,
+          --   tags, btags, args, buffers, tabs, lines, blines
+          -- `file_edit_or_qf` opens a single selection or sends multiple selection to quickfix
+          -- replace `enter` with `file_edit` to open all files/bufs whether single or multiple
+          -- replace `enter` with `file_switch_or_edit` to attempt a switch in current tab first
+          -- ["enter"]       = actions.file_edit_or_qf,
+          -- ["ctrl-s"]      = actions.file_split,
+          -- ["ctrl-v"]      = actions.file_vsplit,
+          -- ["ctrl-t"]      = actions.file_tabedit,
+          -- ["alt-q"]       = actions.file_sel_to_qf,
+          -- ["alt-Q"]       = actions.file_sel_to_ll,
+          -- ["alt-g"]       = actions.toggle_ignore,
+          -- ["alt-h"]       = actions.toggle_hidden,
+          -- ["alt-f"]       = actions.toggle_follow,
         },
       },
-      lsp = {
-        symbols = {
-          symbol_hl = function(s)
-            return "TroubleIcon" .. s
-          end,
-          symbol_fmt = function(s)
-            return s:lower() .. "\t"
-          end,
-          child_prefix = false,
+
+      keymap = {
+        -- Below are the default binds, setting any value in these tables will override
+        -- the defaults, to inherit from the defaults change [1] from `false` to `true`
+        builtin = {
+          -- neovim `:tmap` mappings for the fzf win
+          true, -- uncomment to inherit all the below in your custom config
+          ["<F1>"]     = "toggle-help",
+          ["<S-Left>"] = "preview-reset",
+          ["<S-down>"] = "preview-page-down",
+          ["<S-up>"]   = "preview-page-up",
         },
-        code_actions = {
-          previewer = vim.fn.executable("delta") == 1 and "codeaction_native" or nil,
+        fzf = {
+          -- fzf '--bind=' options
+          true, -- uncomment to inherit all the below in your custom config
+          ["ctrl-d"]     = "half-page-down",
+          ["ctrl-u"]     = "half-page-up",
+          ["ctrl-b"]     = "beginning-of-line",
+          ["ctrl-e"]     = "end-of-line",
+          ["ctrl-h"]     = "first",
+          ["ctrl-l"]     = "last",
+          ["shift-down"] = "preview-page-down",
+          ["shift-up"]   = "preview-page-up",
+          ["ctrl-q"]     = "select-all+accept",
         },
       },
-    }
-  end,
-  config = function(_, opts)
-    if opts[1] == "default-title" then
-      -- use the same prompt for all pickers for profile `default-title` and
-      -- profiles that use `default-title` as base profile
-      local function fix(t)
-        t.prompt = t.prompt ~= nil and " " or nil
-        for _, v in pairs(t) do
-          if type(v) == "table" then
-            fix(v)
-          end
-        end
-        return t
-      end
-      opts = vim.tbl_deep_extend("force", fix(require("fzf-lua.profiles.default-title")), opts)
-      opts[1] = nil
-    end
-    require("fzf-lua").setup(opts)
-  end,
-  init = function()
-    LazyVim.on_very_lazy(function()
-      vim.ui.select = function(...)
-        require("lazy").load({ plugins = { "fzf-lua" } })
-        local opts = LazyVim.opts("fzf-lua") or {}
-        require("fzf-lua").register_ui_select(opts.ui_select or nil)
-        return vim.ui.select(...)
-      end
-    end)
+
+    })
+    require("fzf-lua").register_ui_select()
   end,
   keys = {
-    { "<c-j>", "<c-j>", ft = "fzf", mode = "t", nowait = true },
-    { "<c-k>", "<c-k>", ft = "fzf", mode = "t", nowait = true },
-    { "<c-n>", "<c-n>", ft = "fzf", mode = "t", nowait = true, desc = "Scroll down fzf preview" },
-    { "<c-p>", "<c-p>", ft = "fzf", mode = "t", nowait = true, desc = "Scroll up fzf preview" },
+    -- find files
     {
-      "<leader>,",
-      "<cmd>FzfLua buffers sort_mru=true sort_lastused=true<cr>",
-      desc = "Switch Buffer",
+      "<leader><leader>",
+      function()
+        require("fzf-lua").files({})
+      end,
+      desc = "Fzf files",
     },
-    { "<leader>/", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
-    { "<leader>:", "<cmd>FzfLua command_history<cr>", desc = "Command History" },
-    { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-    -- find
-    { "<leader>fb", "<cmd>FzfLua buffers sort_mru=true sort_lastused=true<cr>", desc = "Buffers" },
-    { "<leader>fc", LazyVim.pick.config_files(), desc = "Find Config File" },
-    { "<leader>ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-    { "<leader>fF", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
-    { "<leader>fg", "<cmd>FzfLua git_files<cr>", desc = "Find Files (git-files)" },
-    { "<leader>fr", "<cmd>FzfLua oldfiles<cr>", desc = "Recent" },
-    { "<leader>fR", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
-    -- git
-    { "<leader>gc", "<cmd>FzfLua git_commits<CR>", desc = "Commits" },
-    { "<leader>gs", "<cmd>FzfLua git_status<CR>", desc = "Status" },
+    {
+      "<leader>ff",
+      function()
+        require("fzf-lua").files({ cmd = "rg --files", rg_opts = [[--color=never --hidden --files --no-ignore]] })
+      end,
+      desc = "Fzf files + .git",
+    },
+    {
+      "<leader>fm",
+      function()
+        -- TODO: calculate a module root and open there
+        require("fzf-lua").files({ cmd = "rg --files", rg_opts = [[--color=never --hidden --files --no-ignore]] })
+      end,
+      desc = "Fzf files + .git",
+    },
+    -- buffers
+    {
+      "<leader>bf",
+      function()
+        require("fzf-lua").buffers()
+      end,
+      desc = "Fzf buffers",
+    },
     -- search
-    { '<leader>s"', "<cmd>FzfLua registers<cr>", desc = "Registers" },
-    { "<leader>sa", "<cmd>FzfLua autocmds<cr>", desc = "Auto Commands" },
-    { "<leader>sb", "<cmd>FzfLua grep_curbuf<cr>", desc = "Buffer" },
-    { "<leader>sc", "<cmd>FzfLua command_history<cr>", desc = "Command History" },
-    { "<leader>sC", "<cmd>FzfLua commands<cr>", desc = "Commands" },
-    { "<leader>sd", "<cmd>FzfLua diagnostics_document<cr>", desc = "Document Diagnostics" },
-    { "<leader>sD", "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Workspace Diagnostics" },
-    { "<leader>sg", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
-    { "<leader>sG", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
-    { "<leader>sh", "<cmd>FzfLua help_tags<cr>", desc = "Help Pages" },
-    { "<leader>sH", "<cmd>FzfLua highlights<cr>", desc = "Search Highlight Groups" },
-    { "<leader>sj", "<cmd>FzfLua jumps<cr>", desc = "Jumplist" },
-    { "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "Key Maps" },
-    { "<leader>sl", "<cmd>FzfLua loclist<cr>", desc = "Location List" },
-    { "<leader>sM", "<cmd>FzfLua man_pages<cr>", desc = "Man Pages" },
-    { "<leader>sm", "<cmd>FzfLua marks<cr>", desc = "Jump to Mark" },
-    { "<leader>sR", "<cmd>FzfLua resume<cr>", desc = "Resume" },
-    { "<leader>sq", "<cmd>FzfLua quickfix<cr>", desc = "Quickfix List" },
-    { "<leader>sw", LazyVim.pick("grep_cword"), desc = "Word (Root Dir)" },
-    { "<leader>sW", LazyVim.pick("grep_cword", { root = false }), desc = "Word (cwd)" },
-    { "<leader>sw", LazyVim.pick("grep_visual"), mode = "v", desc = "Selection (Root Dir)" },
-    { "<leader>sW", LazyVim.pick("grep_visual", { root = false }), mode = "v", desc = "Selection (cwd)" },
-    { "<leader>uC", LazyVim.pick("colorschemes"), desc = "Colorscheme with Preview" },
     {
-      "<leader>ss",
+      "<leader>/",
       function()
-        require("fzf-lua").lsp_document_symbols({
-          regex_filter = symbols_filter,
+        -- default opts + fixed-strings
+        require('fzf-lua').live_grep({
+          file_ignore_patterns = ignore_pattern,
+          rg_opts =
+          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
         })
       end,
-      desc = "Goto Symbol",
+      desc = "Fzf search (plain string)",
     },
     {
-      "<leader>sS",
+      "<C-/>",
       function()
-        require("fzf-lua").lsp_live_workspace_symbols({
-          regex_filter = symbols_filter,
+        -- default opts + fixed-strings
+        require('fzf-lua').live_grep({
+          file_ignore_patterns = ignore_pattern,
+          resume = true,
+          rg_opts =
+          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
         })
       end,
-      desc = "Goto Symbol (Workspace)",
+      desc = "Fzf search last (plain text)",
+    },
+    {
+      "<leader>fs",
+      function()
+        -- default opts + fixed-strings
+        require('fzf-lua').live_grep({
+          rg_opts =
+          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
+        })
+      end,
+      desc = "Fzf search + .git (plain string)",
+    },
+    -- grep
+    {
+      "<leader>fg",
+      function()
+        require('fzf-lua').live_grep({ file_ignore_patterns = ignore_pattern })
+      end,
+      desc = "Fzf grep (regex)",
+    },
+    {
+      "<leader>fG",
+      function()
+        require('fzf-lua').live_grep({ file_ignore_patterns = ignore_pattern, resume = true })
+      end,
+      desc = "Fzf grep last (regex)",
+    },
+    -- commands
+    {
+      "<leader>:",
+      function()
+        require("fzf-lua").command_history()
+      end,
+      desc = "Fzf command history",
+    },
+    -- git
+    {
+      "<leader>gs",
+      function()
+        require("fzf-lua").git_status()
+      end,
+      desc = "Fzf git status",
+    },
+    {
+      "<leader>gc",
+      function()
+        require("fzf-lua").git_commits()
+      end,
+      desc = "Fzf git commits",
+    },
+    -- colors
+    {
+      "<leader>uc",
+      function()
+        require("fzf-lua").colorschemes()
+      end,
+      desc = "Fzf colorscheme",
+    },
+    {
+      "<leader>ho",
+      function()
+        require("fzf-lua").nvim_options()
+      end,
+      desc = "Fzf nvim options",
+    },
+    -- help
+    {
+      "<leader>hk",
+      function()
+        require("fzf-lua").keymaps()
+      end,
+      desc = "Fzf keymaps",
+    },
+    {
+      "gra",
+      function()
+        require("fzf-lua").lsp_code_actions()
+      end,
+      desc = "LSP code action",
+    },
+    -- lsp
+    {
+      "gri",
+      function()
+        require("fzf-lua").lsp_implementations()
+      end,
+      desc = "LSP implementations",
+    },
+    {
+      "grd",
+      function()
+        require("fzf-lua").lsp_definitions()
+      end,
+      desc = "LSP definition",
+    },
+    {
+      "grr",
+      function()
+        require("fzf-lua").lsp_references()
+      end,
+      desc = "LSP references",
+    },
+    {
+      "grt",
+      function()
+        require("fzf-lua").lsp_typedefs()
+      end,
+      desc = "LSP type definitions",
+    },
+    -- diagnostic
+    {
+      "<leader>xf",
+      function()
+        require("fzf-lua").quickfix()
+      end,
+      desc = "Fzf quickfix",
+    },
+    {
+      "<leader>xd",
+      function()
+        require("fzf-lua").diagnostics_document()
+      end,
+      desc = "Diagnostic Document",
+    },
+    {
+      "<leader>xw",
+      function()
+        require("fzf-lua").diagnostics_workspace()
+      end,
+      desc = "Diagnostic Workspace",
     },
   },
 }
