@@ -30,5 +30,6 @@
   "one-small-step-for-vimkind": { "branch": "main", "commit": "7f47c3297eeed1364be3c6ad915b1df2beb2b2f4" },
   "persistence.nvim": { "branch": "main", "commit": "f6aad7dde7fcf54148ccfc5f622c6d5badd0cc3d" },
   "plenary.nvim": { "branch": "master", "commit": "2d9b06177a975543726ce5c73fca176cedbffe9d" },
+  "quicktest.nvim": { "branch": "main", "commit": "4fcc3909efbde5c382d456721bfa4ef520800182" },
   "which-key.nvim": { "branch": "main", "commit": "9b365a6428a9633e3eeb34dbef1b791511c54f70" }
 }

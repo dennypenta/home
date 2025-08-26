@@ -4,11 +4,10 @@ local args_by_ft = {
 
 return {
   "dennypenta/quicktest.nvim",
-  dir = "~/projects/quicktest.nvim",
-  dev = true,
   config = function()
     local qt = require("quicktest")
 
+    -- update quick test type annotations
     qt.setup({
       adapters = {
         require("quicktest.adapters.golang")(),

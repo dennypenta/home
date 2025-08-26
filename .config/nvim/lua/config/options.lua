@@ -6,7 +6,7 @@ vim.g.loaded_netrw_gitignore = 1
 
 local o = vim.opt
 
-o.mouse = 'a'
+o.mouse = "a"
 -- numbers
 o.number = true
 o.relativenumber = true
@@ -27,6 +27,8 @@ o.ignorecase = true
 o.smartcase = true
 o.hlsearch = true
 o.incsearch = true
+-- adds /g flag to search
+o.gdefault = true
 -- colors
 o.termguicolors = true
 o.signcolumn = "yes:2"
@@ -55,7 +57,7 @@ o.iskeyword:append("-")
 -- search for :find,etc.
 o.path:append("**")
 o.clipboard = "unnamedplus" -- Sync with system clipboard
-o.confirm = true            -- Confirm to save changes before exiting modified buffer
+o.confirm = true -- Confirm to save changes before exiting modified buffer
 
 -- hotkey leader and secondary leader
 vim.g.mapleader = " "
@@ -68,15 +70,15 @@ o.fillchars = {
   diff = "╱",
   eob = " ",
 }
-o.foldlevel = 99       -- never fold
+o.foldlevel = 99 -- never fold
 o.grepprg = "rg --vimgrep"
 o.jumpoptions = "view" -- show a buffer position on C-I and C-O jumping across the latest
 -- cursor positions
-o.laststatus = 3       -- global statusline
+o.laststatus = 3 -- global statusline
 o.statusline = "%F %= ft=%y %p%% lines=%L[%l,%c]"
-o.linebreak = true     -- Wrap lines at convenient points, has no effect with wrap=true
-o.list = true          -- Show some invisible characters (tabs, etc.)
-o.ruler = false        -- Disable the default ruler
+o.linebreak = true -- Wrap lines at convenient points, has no effect with wrap=true
+o.list = true -- Show some invisible characters (tabs, etc.)
+o.ruler = false -- Disable the default ruler
 o.sessionoptions = {
   "buffers",
   "curdir",
@@ -89,11 +91,11 @@ o.sessionoptions = {
 o.shiftround = true -- Round indent
 o.shortmess = "ltToOcCFWI"
 o.spelllang = { "en" }
-o.splitbelow = true              -- Put new windows below current
-o.splitright = true              -- Put new windows right of current
+o.splitbelow = true -- Put new windows below current
+o.splitright = true -- Put new windows right of current
 o.splitkeep = "screen"
-o.timeoutlen = 300               -- Lower than default (1000) to quickly trigger which-key
-o.virtualedit = "block"          -- Allow cursor to move where there is no text in visual block mode
+o.timeoutlen = 300 -- Lower than default (1000) to quickly trigger which-key
+o.virtualedit = "block" -- Allow cursor to move where there is no text in visual block mode
 o.wildmode = "longest:full,full" -- Command-line completion mode
-o.winminwidth = 16               -- Minimum window width
+o.winminwidth = 16 -- Minimum window width
 o.smoothscroll = true
