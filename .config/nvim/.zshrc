@@ -1,1 +1,0 @@
-/Users/denis/projects/home/.zshrc

@@ -138,9 +138,7 @@ alias ls='eza'
 alias ll='eza -lh'
 alias la='eza -lAh'
 alias ltree='eza --tree --icons'
-alias nv='nvim'
-alias vi='NVIM_APPNAME=vi nvim'
-alias vim='nvim'
+alias vi='nvim'
 alias gfrm="git fetch --all && git rebase origin/main  git rebase origin/master"
 alias gfrd="git fetch --all && git rebase origin/develop"
 alias cpf="copyfile"
@@ -198,3 +196,4 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+export PATH="$HOME/.local/bin:$PATH"

@@ -1,3 +1,4 @@
+-- consider taking bufdelete plugin
 local M = {}
 
 local function get_next_buf(current)
@@ -14,10 +15,10 @@ end
 local function switch_buffer(windows, buf)
   local cur_win = vim.fn.winnr()
   for _, winid in ipairs(windows) do
-    vim.cmd(string.format('%d wincmd w', vim.fn.win_id2win(winid)))
-    vim.cmd(string.format('buffer %d', buf))
+    vim.cmd(string.format("%d wincmd w", vim.fn.win_id2win(winid)))
+    vim.cmd(string.format("buffer %d", buf))
   end
-  vim.cmd(string.format('%d wincmd w', cur_win))
+  vim.cmd(string.format("%d wincmd w", cur_win))
 end
 
 local function is_writable(buf_id)

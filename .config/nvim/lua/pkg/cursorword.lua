@@ -1,4 +1,5 @@
 -- most of the code is from https://github.com/xiyaowong/nvim-cursorword
+-- TODO: consider taking the repo as a plugin
 local M = {}
 local fn = vim.fn
 local api = vim.api
@@ -82,10 +83,16 @@ function M.set_autocmds()
 
       -- Start new timer (e.g., 150ms delay)
       timer = vim.uv.new_timer()
-      if timer == nil then return end
-      timer:start(300, 0, vim.schedule_wrap(function()
-        matchadd()
-      end))
+      if timer == nil then
+        return
+      end
+      timer:start(
+        300,
+        0,
+        vim.schedule_wrap(function()
+          matchadd()
+        end)
+      )
     end,
   })
   api.nvim_create_autocmd("WinLeave", {
@@ -99,7 +106,7 @@ function M.set_autocmds()
     group = group_id,
     pattern = "*",
     callback = function()
-      api.nvim_set_hl(0, "CursorWord", {fg = "#C5C9C5", bold = true, default = true})
+      api.nvim_set_hl(0, "CursorWord", { fg = "#C5C9C5", bold = true, default = true })
     end,
   })
 end

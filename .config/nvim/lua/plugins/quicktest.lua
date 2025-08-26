@@ -3,7 +3,7 @@ local args_by_ft = {
 }
 
 return {
-  "quolpr/quicktest.nvim",
+  "dennypenta/quicktest.nvim",
   dir = "~/projects/quicktest.nvim",
   dev = true,
   config = function()
@@ -13,11 +13,12 @@ return {
       adapters = {
         require("quicktest.adapters.golang")(),
       },
-      -- split or popup mode, when argument not specified
-      default_win_mode = "split",
-      use_builtin_colorizer = true,
-      quickfix = { enabled = true, open = false },
-      summary = { join_to_panel = true, only_failed = true, enabled = true },
+      ui = {
+        require("quicktest.ui.panel")({ default_win_mode = "split" }),
+        require("quicktest.ui.diagnostics")(),
+        require("quicktest.ui.quickfix")({ enabled = true, open = false }),
+        require("quicktest.ui.summary")({ join_to_panel = true, only_failed = true, enabled = true }),
+      },
     })
   end,
   dependencies = {
@@ -51,18 +52,18 @@ return {
       desc = "[T]est Run [F]ile",
     },
     {
-      '<leader>tp',
+      "<leader>tp",
       function()
-        local qt = require 'quicktest'
+        local qt = require("quicktest")
 
         qt.run_dir()
       end,
-      desc = '[T]est Run [D]ir',
+      desc = "[T]est Run [D]ir",
     },
     {
-      '<leader>ta',
+      "<leader>ta",
       function()
-        local qt = require('quicktest')
+        local qt = require("quicktest")
         local args = args_by_ft[vim.bo.ft]
         if not args then
           local msg = string.format("no args for ft=%s found", vim.bo.ft)
@@ -71,7 +72,7 @@ return {
 
         qt.run_all("auto", "auto", { additional_args = args })
       end,
-      desc = '[T]est Run [A]ll',
+      desc = "[T]est Run [A]ll",
     },
     {
       "<leader>tl",
