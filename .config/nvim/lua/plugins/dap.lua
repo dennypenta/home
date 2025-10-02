@@ -270,23 +270,6 @@ return {
       -- useless, prefer having them from .vscode/launch.json
       dap_configurations = {},
       delve = { port = goPort },
-      tests = { verbose = true },
-    },
-    keys = {
-      {
-        "<leader>td",
-        function()
-          require("dap-go").debug_test()
-        end,
-        desc = "Debug Test",
-      },
-      {
-        "<leader>tD",
-        function()
-          require("dap-go").debug_last_test()
-        end,
-        desc = "Debug Last Test",
-      },
     },
   },
   {
