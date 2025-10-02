@@ -1,50 +1,4 @@
-local function choose_go_program(callback)
-  if not callback then
-    vim.notify("expected callback, given none", vim.log.levels.ERROR)
-    return
-  end
-  local launch_path = vim.fn.getcwd() .. "/.vscode/launch.json"
-  local file = io.open(launch_path, "r")
-  if not file then
-    vim.notify("No .vscode/launch.json found", vim.log.levels.ERROR)
-    return
-  end
-
-  local content = file:read("*a")
-  file:close()
-
-  local ok, data = pcall(vim.json.decode, content)
-  if not ok or not data.configurations then
-    vim.notify("Invalid launch.json", vim.log.levels.ERROR)
-    return
-  end
-
-  -- collect candidates
-  local items = {}
-  for _, cfg in ipairs(data.configurations) do
-    if cfg.type == "go" and cfg.mode ~= "remote" then
-      if cfg.program then
-        table.insert(items, cfg.program)
-      end
-    end
-  end
-
-  if #items == 0 then
-    vim.notify("No matching go configurations", vim.log.levels.INFO)
-    return
-  end
-
-  -- native menu (nvim 0.6+)
-  vim.ui.select(items, { prompt = "Select Go program:" }, function(choice)
-    if choice then
-      local resolved = require("pkg.vscode").substitute(choice)
-      callback(resolved)
-    end
-  end)
-end
-
 -- TODO: research if the plugin worth it
-
 return {
   "ray-x/go.nvim",
   dependencies = { -- optional packages
@@ -120,34 +74,6 @@ return {
         vim.cmd("startinsert")
       end,
       desc = "Wrap line in if err !=",
-    },
-    {
-      "<leader>cw",
-      function()
-        vim.cmd("GoIfErr")
-      end,
-      desc = "Add line if err !=",
-    },
-    {
-      "<leader>cB",
-      function()
-        local buf_path = vim.api.nvim_buf_get_name(0)
-        if buf_path == "" then
-          return nil
-        end
-        local package = vim.fn.fnamemodify(buf_path, ":h")
-        vim.cmd("GoBuild" .. package)
-      end,
-      desc = "Go build current package",
-    },
-    {
-      "<leader>cb",
-      function()
-        choose_go_program(function(choice)
-          vim.cmd("GoBuild" .. choice)
-        end)
-      end,
-      desc = "Go build a package",
     },
     {
       "<leader>ca",

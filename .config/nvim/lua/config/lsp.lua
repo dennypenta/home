@@ -1,7 +1,7 @@
 vim.lsp.enable({
   "lua_ls",
   "gopls",
-  -- TODO: add the others javascript LSPs
+  "zls",
   -- TODO: enable linked editing range for web
 })
 

@@ -4,6 +4,7 @@ local args_by_ft = {
 
 return {
   "dennypenta/quicktest.nvim",
+  dir = "~/projects/quicktest.nvim",
   config = function()
     local qt = require("quicktest")
 
@@ -85,18 +86,16 @@ return {
     {
       "<leader>tt",
       function()
-        local qt = require("quicktest")
-
-        qt.toggle_win("split")
+        local ui = require("quicktest.ui")
+        ui.get("panel").toggle("split")
       end,
       desc = "[T]est [T]oggle Window",
     },
     {
       "<leader>to",
       function()
-        local qt = require("quicktest")
-
-        qt.toggle_win("popup")
+        local ui = require("quicktest.ui")
+        ui.get("panel").toggle("popup")
       end,
       desc = "[T]est [T]oggle Window",
     },
@@ -112,9 +111,8 @@ return {
     {
       "<leader>ts",
       function()
-        local qt = require("quicktest")
-
-        qt.toggle_summary()
+        local ui = require("quicktest.ui")
+        ui.get("summary").toggle()
       end,
       desc = "[T]est [S]ummary",
     },
@@ -137,8 +135,8 @@ return {
     {
       "<leader>tS",
       function()
-        local qt = require("quicktest")
-        qt.toggle_summary_failed_filter()
+        local ui = require("quicktest.ui")
+        ui.get("summary").toggle_failed_filter()
       end,
       desc = "Toggle summary show only failed",
     },

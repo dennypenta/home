@@ -1,16 +1,8 @@
 local signs = require("pkg.icons")
--- TODO: persistent breakpoints
---
 -- TODO: try not to use $file and the others
--- TODO: subtest debugging: https://github.com/leoluz/nvim-dap-go/issues/122
--- TODO: remove subtest debugging when merged: https://github.com/leoluz/nvim-dap-go/issues/122
 -- TODO: remove enrich config when envFile merged: https://github.com/leoluz/nvim-dap-go/pull/115
--- TODO: test debug puts lots of options to "continue" call
--- TODO: dap ui: remove watchers, dapui console, add key "jump to breakpoint"
--- TODO: debug test assert error to diagnostic
--- TODO: virtual text: https://github.com/theHamsta/nvim-dap-virtual-text
+-- TODO: dap ui: remove watchers, dapui console
 
--- TODO move to icons and color the signs on scheme autocmd
 local signIcons = {
   DapBreakpoint = signs.Dap.Breakpoint,
   DapBreakpointCondition = signs.Dap.BreakpointCondition,
@@ -34,14 +26,14 @@ local function parse_go_error(lang, line)
       lnum = tonumber(lnum),
       col = tonumber(col),
       text = message,
-      type = 'E',
+      type = "E",
     }
   end
   return nil
 end
 
-function on_dap_output(lang, output)
-  local output_lines = vim.split(output, '\n')
+local function on_dap_output(lang, output)
+  local output_lines = vim.split(output, "\n")
   local qflist = {}
   for _, line in ipairs(output_lines) do
     local entry = parse_go_error(lang, line)
@@ -51,8 +43,8 @@ function on_dap_output(lang, output)
   end
 
   if #qflist > 0 then
-    vim.fn.setqflist({}, 'r', { title = 'Go Compilation Errors', items = qflist })
-    vim.api.nvim_command('copen')
+    vim.fn.setqflist({}, "r", { title = "Go Compilation Errors", items = qflist })
+    vim.api.nvim_command("copen")
   end
 end
 
@@ -94,7 +86,6 @@ local function enrichConf(finalConfig, on_config)
   on_config(final_config)
 end
 
-
 local luaPort = 8086
 local goPort = 40000
 
@@ -107,33 +98,120 @@ return {
     lazy = false,
     pin = true,
     keys = {
-      { "<leader>d",  "",                                                                                   desc = "+debug",              mode = { "n", "v" } },
-      { "gp",         function() require("dap").toggle_breakpoint() end,                                    desc = "Toggle Breakpoint" },
-      { "<leader>dP", function() require("dap").clear_breakpoints() end,                                    desc = "Clear Breakpoint" },
-      { "<leader>dc", function() require("dap").continue() end,                                             desc = "Run/Continue" },
-      { "<leader>dd", function() require("dap").run_last() end,                                             desc = "Run Last" },
-      { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
-      { "<F1>",       function() require("dap").step_over() end,                                            desc = "Step Over" },
-      { "<F2>",       function() require("dap").step_into() end,                                            desc = "Step Into" },
-      { "<F3>",       function() require("dap").step_out() end,                                             desc = "Step Out" },
-      { "<F4>",       function() require("dap").run_to_cursor() end,                                        desc = "Run to Cursor" },
-      { "<F5>",       function() require("dap").down() end,                                                 desc = "Down" },
-      { "<F6>",       function() require("dap").up() end,                                                   desc = "Up" },
-      { "<leader>ds", function() require("dap").restart() end,                                              desc = "Restart" },
-      { "<leader>dt", function() require("dap").terminate() end,                                            desc = "Terminate" },
-      { "<leader>dr", function() require("dap").repl.toggle() end,                                          desc = "Toggle REPL" },
+      {
+        "<leader>d",
+        "",
+        desc = "+debug",
+        mode = { "n", "v" },
+      },
+      {
+        "gp",
+        function()
+          require("dap").toggle_breakpoint()
+        end,
+        desc = "Toggle Breakpoint",
+      },
+      {
+        "<leader>dP",
+        function()
+          require("dap").clear_breakpoints()
+        end,
+        desc = "Clear Breakpoint",
+      },
+      {
+        "<leader>dc",
+        function()
+          require("dap").continue()
+        end,
+        desc = "Run/Continue",
+      },
+      {
+        "<leader>dd",
+        function()
+          require("dap").run_last()
+        end,
+        desc = "Run Last",
+      },
+      {
+        "<leader>dB",
+        function()
+          require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
+        end,
+        desc = "Breakpoint Condition",
+      },
+      {
+        "<F1>",
+        function()
+          require("dap").step_over()
+        end,
+        desc = "Step Over",
+      },
+      {
+        "<F2>",
+        function()
+          require("dap").step_into()
+        end,
+        desc = "Step Into",
+      },
+      {
+        "<F3>",
+        function()
+          require("dap").step_out()
+        end,
+        desc = "Step Out",
+      },
+      {
+        "<F4>",
+        function()
+          require("dap").run_to_cursor()
+        end,
+        desc = "Run to Cursor",
+      },
+      {
+        "<F5>",
+        function()
+          require("dap").down()
+        end,
+        desc = "Down",
+      },
+      {
+        "<F6>",
+        function()
+          require("dap").up()
+        end,
+        desc = "Up",
+      },
+      {
+        "<leader>ds",
+        function()
+          require("dap").restart()
+        end,
+        desc = "Restart",
+      },
+      {
+        "<leader>dt",
+        function()
+          require("dap").terminate()
+        end,
+        desc = "Terminate",
+      },
+      {
+        "<leader>dr",
+        function()
+          require("dap").repl.toggle()
+        end,
+        desc = "Toggle REPL",
+      },
     },
     config = function()
       -- brekapoint signs
       for k, v in pairs(signIcons) do
-        vim.fn.sign_define(
-          k,
-          {
-            text = v,
-            texthl = k,
-            linehl = "",
-            numhl = "",
-          })
+        vim.fn.sign_define(k, {
+          text = v,
+          texthl = k,
+          linehl = "",
+          numhl = "",
+        })
       end
 
       local dap = require("dap")
@@ -154,7 +232,7 @@ return {
             args = { "dap", "-l", "127.0.0.1:" .. goPort },
           },
           enrich_config = enrichConf,
-        }
+        },
       }
       dap.configurations = {
         lua = {
@@ -166,12 +244,12 @@ return {
         },
       }
       dap.listeners.after["event_output"]["this"] = function(session, body)
-        if body.category == 'stderr' and not session.initialized then
+        if body.category == "stderr" and not session.initialized then
           on_dap_output(session.config.type, body.output)
         end
       end
       dap.listeners.after["event_initialized"]["this"] = function(session, body)
-        vim.fn.setqflist({}, 'r', { items = {} })
+        vim.fn.setqflist({}, "r", { items = {} })
       end
       local dapui = require("dapui")
       dap.listeners.before.attach.dapui_config = function()
@@ -195,8 +273,20 @@ return {
       tests = { verbose = true },
     },
     keys = {
-      { "<leader>td", function() require("dap-go").debug_test() end,      desc = "Debug Test" },
-      { "<leader>tD", function() require("dap-go").debug_last_test() end, desc = "Debug Last Test" },
+      {
+        "<leader>td",
+        function()
+          require("dap-go").debug_test()
+        end,
+        desc = "Debug Test",
+      },
+      {
+        "<leader>tD",
+        function()
+          require("dap-go").debug_last_test()
+        end,
+        desc = "Debug Last Test",
+      },
     },
   },
   {
@@ -207,7 +297,13 @@ return {
       "mfussenegger/nvim-dap",
     },
     keys = {
-      { "<leader>dl", function() require "osv".launch({ port = luaPort }) end, desc = "Debug Lua" },
+      {
+        "<leader>dl",
+        function()
+          require("osv").launch({ port = luaPort })
+        end,
+        desc = "Debug Lua",
+      },
     },
   },
   {

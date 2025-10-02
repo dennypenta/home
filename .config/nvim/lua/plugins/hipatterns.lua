@@ -33,7 +33,6 @@ end
 
 local oklch_pattern = 'oklch%(%s*[%d%.]+%s+[%d%.]+%s+[%d%.]+%s*/?%s*[%d%.]*%)'
 local oklch_content = "oklch%(%s*([%d%.]+)%s+([%d%.]+)%s+([%d%.]+)"
--- TODO: just use eero-lehtinen/oklch-color-picker.nvim
 
 return {
   'echasnovski/mini.hipatterns',

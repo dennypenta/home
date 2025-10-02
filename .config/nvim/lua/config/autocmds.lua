@@ -1,5 +1,3 @@
-local Bufs = require("pkg.bufs")
-
 local function augroup(name)
   return vim.api.nvim_create_augroup(name, { clear = true })
 end
@@ -59,12 +57,8 @@ vim.api.nvim_create_autocmd("FileType", {
     "checkhealth",
     "grug-far",
     "help",
-    "neotest-output",
-    "neotest-output-panel",
-    "neotest-summary",
     "quicktest-output",
     "quicktest-summary",
-    -- TODO: add quicktest-split filetype, find the ft itself first
     "notify",
     "startuptime",
     "man",
@@ -106,12 +100,11 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
   end,
 })
 
--- TODO: add deletion handling
 -- Auto save on finished editing
-vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged", "TextChangedT" }, {
+vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged", "TextChangedT", "BufDelete" }, {
   group = augroup("autosave"),
   callback = function()
-    if vim.bo.modified then
+    if vim.bo.modified and vim.bo.buftype == "" then
       vim.cmd("silent! write")
     end
   end,

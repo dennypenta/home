@@ -4,7 +4,9 @@ local root_linters = {
 
 function table.copy(t)
   local u = {}
-  for k, v in pairs(t) do u[k] = v end
+  for k, v in pairs(t) do
+    u[k] = v
+  end
   setmetatable(u, getmetatable(t))
   return u
 end
@@ -17,11 +19,11 @@ local function make_golangcilint_root(original)
     return vim.uv.cwd() .. "/..."
   end
   golangci_root.parser = function(output, bufnr, cwd)
-    if output == '' then
+    if output == "" then
       return {}
     end
     local decoded = vim.json.decode(output)
-    if decoded["Issues"] == nil or type(decoded["Issues"]) == 'userdata' then
+    if decoded["Issues"] == nil or type(decoded["Issues"]) == "userdata" then
       return {}
     end
 
@@ -73,7 +75,9 @@ local function make_golangcilint_root(original)
           message = qitem.text,
         })
       elseif buf > -1 then
-        if other_ds[buf] == nil then other_ds[buf] = {} end
+        if other_ds[buf] == nil then
+          other_ds[buf] = {}
+        end
         table.insert(other_ds[buf], {
           lnum = qitem.lnum,
           col = qitem.col,
@@ -91,8 +95,8 @@ local function make_golangcilint_root(original)
     for buf, ds in pairs(other_ds) do
       vim.diagnostic.set(require("lint").get_namespace("golangcilint"), buf, ds)
     end
-    vim.fn.setqflist({}, 'r', { title = 'Go Lint Errors', items = qlist })
-    vim.api.nvim_command('copen')
+    vim.fn.setqflist({}, "r", { title = "Go Lint Errors", items = qlist })
+    vim.api.nvim_command("copen")
 
     -- populate diagnostic on opening a buffer
     vim.api.nvim_create_autocmd("BufReadPost", {
@@ -125,13 +129,33 @@ end
 return {
   "mfussenegger/nvim-lint",
   pin = true,
+  lazy = false,
   config = function()
     local lint = require("lint")
     lint.linters_by_ft = {
-      go = { 'golangcilint' },
+      go = { "golangcilint" },
+      zig = { "zlint", "zig" },
     }
 
     lint.linters.golangci_root = make_golangcilint_root(lint.linters.golangcilint)
+
+    local pattern = "^::(%w+) file=([^,]+),line=(%d+),col=(%d+),title=([^:]+)::(.+)$"
+    local groups = { "severity", "file", "lnum", "col", "code", "message" }
+    local severity_map = {
+      ["error"] = vim.diagnostic.severity.ERROR,
+      ["warning"] = vim.diagnostic.severity.WARN,
+    }
+
+    lint.linters.zlint = {
+      name = "zlint",
+      cmd = "zlint",
+      args = { "--format", "github" },
+      stdin = false,
+      append_fname = false,
+      stream = "both",
+      ignore_exitcode = true,
+      parser = require("lint.parser").from_pattern(pattern, groups, severity_map),
+    }
 
     vim.api.nvim_create_autocmd({ "BufWritePost" }, {
       callback = function()
@@ -147,7 +171,7 @@ return {
         local linter = root_linters[vim.bo.filetype]
         require("lint").try_lint(linter)
       end,
-      desc = "Lint"
+      desc = "Lint",
     },
   },
 }

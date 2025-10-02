@@ -1,4 +1,5 @@
 local ignore_pattern = { ".git" }
+local root = require("pkg.root")
 
 return {
   "ibhagwan/fzf-lua",
@@ -89,8 +90,8 @@ return {
     {
       "<leader>fm",
       function()
-        -- TODO: calculate a module root and open there
-        require("fzf-lua").files({ cmd = "rg --files", rg_opts = [[--color=never --hidden --files --no-ignore]] })
+        local cwd = root.root_of_module()
+        require("fzf-lua").files({cwd = cwd,  cmd = "rg --files", rg_opts = [[--color=never --hidden --files --no-ignore]] })
       end,
       desc = "Fzf files + .git",
     },

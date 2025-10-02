@@ -197,3 +197,5 @@ case ":$PATH:" in
 esac
 # pnpm end
 export PATH="$HOME/.local/bin:$PATH"
+# mason 
+export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"

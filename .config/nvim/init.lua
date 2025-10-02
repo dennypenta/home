@@ -6,8 +6,6 @@ require("config.autocmds")
 require("config.ft")
 require("config.lsp")
 require("config.diagnostic")
-require("pkg.cursorword").set_autocmds()
-require("pkg.scroll").setup()
 
 local Root = require("pkg.root")
 Root.to_root()
@@ -20,7 +18,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
       { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out,                            "WarningMsg" },
+      { out, "WarningMsg" },
       { "\nPress any key to exit..." },
     }, true, {})
     vim.fn.getchar()
