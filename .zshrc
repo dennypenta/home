@@ -199,3 +199,6 @@ esac
 export PATH="$HOME/.local/bin:$PATH"
 # mason 
 export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
+
+# wezterm
+export WEZTERM_CONFIG_FILE=$HOME/.config/wezterm/wezterm.lua
