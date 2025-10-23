@@ -1,7 +1,6 @@
 local signs = require("pkg.icons")
 -- TODO: try not to use $file and the others
 -- TODO: remove enrich config when envFile merged: https://github.com/leoluz/nvim-dap-go/pull/115
--- TODO: dap ui: remove watchers, dapui console
 
 local signIcons = {
   DapBreakpoint = signs.Dap.Breakpoint,
@@ -233,6 +232,14 @@ return {
           },
           enrich_config = enrichConf,
         },
+        codelldb = {
+          type = "server",
+          port = "${port}",
+          executable = {
+            command = "codelldb",
+            args = { "--port", "${port}" },
+          },
+        },
       }
       dap.configurations = {
         lua = {
@@ -266,11 +273,8 @@ return {
   {
     "leoluz/nvim-dap-go",
     pin = true,
-    opts = {
-      -- useless, prefer having them from .vscode/launch.json
-      dap_configurations = {},
-      delve = { port = goPort },
-    },
+    -- Don't use opts/setup to avoid default configurations
+    config = false,
   },
   {
     "jbyuki/one-small-step-for-vimkind",
@@ -298,6 +302,34 @@ return {
       { "<leader>du", function() require("dapui").toggle({}) end, desc = "Dap UI" },
       { "<leader>de", function() require("dapui").eval() end,     desc = "Eval",  mode = { "n", "v" } },
     },
-    opts = {},
+    opts = {
+      layouts = {
+        {
+          elements = {
+            { id = "scopes", size = 0.6 },
+            { id = "breakpoints", size = 0.2 },
+            { id = "stacks", size = 0.2 },
+          },
+          position = "left",
+          size = 40,
+        },
+        {
+          elements = {
+            { id = "repl", size = 0.5 },
+            { id = "console", size = 0.5 },
+          },
+          position = "bottom",
+          size = 10,
+        },
+      },
+      mappings = {
+        edit = "e",
+        expand = { "<CR>", "<2-LeftMouse>" },
+        open = "<CR>", -- jump to a breakpoint
+        remove = "d",
+        repl = "r",
+        toggle = "t",
+      },
+    },
   },
 }

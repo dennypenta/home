@@ -1,4 +1,4 @@
-local function choose_program(callback)
+local function choose_program(adapter, callback)
   if not callback then
     vim.notify("expected callback, given none", vim.log.levels.ERROR)
     return
@@ -22,7 +22,7 @@ local function choose_program(callback)
   -- collect candidates
   local items = {}
   for _, cfg in ipairs(data.configurations) do
-    if cfg.mode ~= "remote" then
+    if cfg.type == adapter and cfg.mode ~= "remote" then
       if cfg.program then
         table.insert(items, cfg.program)
       end
@@ -30,7 +30,7 @@ local function choose_program(callback)
   end
 
   if #items == 0 then
-    vim.notify("No matching go configurations", vim.log.levels.INFO)
+    vim.notify("No matching" .. adapter .. "configurations", vim.log.levels.INFO)
     return
   end
 
@@ -46,24 +46,29 @@ local function choose_program(callback)
     return
   end
 
-  -- native menu (nvim 0.6+)
-  vim.ui.select(items, { prompt = "Select Go program:" }, call)
+  vim.ui.select(items, { prompt = "Select program:" }, call)
 end
 
 local langToCmd = {
-  zig = "zig build -fincremental",
-  go = function(prg)
-    return "go run " .. prg
-  end,
+  zig = {
+    prg = "zig build -fincremental",
+    adapter = "codelldb",
+  },
+  go = {
+    prg = function(prg)
+      return "go run " .. prg
+    end,
+    adapter = "go",
+  },
 }
 
 local function build()
   local compile = require("compile").compile
   local buildCmd = langToCmd[vim.bo.filetype]
-  if type(buildCmd) == "string" then
-    compile(buildCmd)
+  if type(buildCmd.prg) == "string" then
+    compile(buildCmd.prg)
   else
-    choose_program(function(prg)
+    choose_program(buildCmd.adapter, function(prg)
       local cmd = buildCmd(prg)
       compile(cmd)
     end)
