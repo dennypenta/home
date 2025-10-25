@@ -2,8 +2,56 @@ local args_by_ft = {
   go = { "-v", "-failfast", "-race", "short", "-count=1" },
 }
 
+local function build_and_debug()
+  local quicktest = require("quicktest")
+  local compile = require("compile")
+
+  local build_cmd = quicktest.get_build_line("auto", { cmd_override = { "build", "btest", "--summary", "all" } })
+
+  if not build_cmd then
+    vim.notify("No build command available", vim.log.levels.ERROR)
+    return
+  end
+
+  local full_cmd = table.concat(build_cmd, " ")
+  compile.compile(full_cmd .. "; echo STATUS:$?")
+
+  local handled = false
+  local function on_lines(_, bufnr, _, first_line, last_line)
+    if handled then
+      return true
+    end
+
+    local lines = vim.api.nvim_buf_get_lines(bufnr, first_line, last_line, false)
+    for _, line in ipairs(lines) do
+      -- Zig outputs "Build Summary: X/Y steps succeeded..."
+      local status = line:match("^STATUS:(%d+)$")
+      if status then
+        handled = true
+
+        vim.schedule(function()
+          if status == "0" then
+            compile.destroy()
+            quicktest.run_line(nil, "zig", { strategy = "dap" })
+          end
+        end)
+
+        return true
+      end
+    end
+  end
+
+  vim.defer_fn(function()
+    if vim.api.nvim_buf_is_valid(compile.term.state.buf) then
+      vim.api.nvim_buf_attach(compile.term.state.buf, false, {
+        on_lines = on_lines,
+      })
+    end
+  end, 100)
+end
+
 return {
-  "dennypenta/quicktest.nvim",
+  "dennypenta/dashtest.nvim",
   dir = "~/projects/quicktest.nvim",
   config = function()
     local qt = require("quicktest")
@@ -12,6 +60,7 @@ return {
     qt.setup({
       adapters = {
         require("quicktest.adapters.golang")(),
+        require("quicktest.adapters.zig")({ test_filter_flag = "-Dtest-filter" }),
       },
       ui = {
         require("quicktest.ui.panel")({ default_win_mode = "split" }),
@@ -34,12 +83,27 @@ return {
       end,
       desc = "[T]est Run [L]line",
     },
+    {
+      "<leader>tR",
+      function()
+        local qt = require("quicktest")
+        qt.run_line("auto", "auto", { cmd_override = { "build", "btest", "--summary", "all" } })
+      end,
+      desc = "[T]est Run [L]line",
+    },
     -- TODO: for go dap temporary patch cwd
     {
       "<leader>td",
       function()
         local qt = require("quicktest")
         qt.run_line("auto", "auto", { strategy = "dap" })
+      end,
+      desc = "[D]ebug [L]line",
+    },
+    {
+      "<leader>tD",
+      function()
+        build_and_debug()
       end,
       desc = "[D]ebug [L]line",
     },
@@ -65,12 +129,7 @@ return {
       "<leader>ta",
       function()
         local qt = require("quicktest")
-        local args = args_by_ft[vim.bo.ft]
-        if not args then
-          local msg = string.format("no args for ft=%s found", vim.bo.ft)
-          return vim.notify(msg, vim.log.levels.ERROR)
-        end
-
+        local args = args_by_ft[vim.bo.ft] or {}
         qt.run_all("auto", "auto", { additional_args = args })
       end,
       desc = "[T]est Run [A]ll",
@@ -104,7 +163,6 @@ return {
       "<leader>tc",
       function()
         local qt = require("quicktest")
-
         qt.cancel_current_run()
       end,
       desc = "[T]est [C]ancel Current Run",
