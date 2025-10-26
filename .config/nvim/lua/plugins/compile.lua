@@ -1,88 +1,37 @@
-local function choose_program(adapter, callback)
-  if not callback then
-    vim.notify("expected callback, given none", vim.log.levels.ERROR)
-    return
-  end
-  local launch_path = vim.fn.getcwd() .. "/.vscode/launch.json"
-  local file = io.open(launch_path, "r")
-  if not file then
-    vim.notify("No .vscode/launch.json found", vim.log.levels.ERROR)
+local vscode = require("pkg.vscode")
+
+local function compileFromPreset(build)
+  local tasks = vscode.getTasks()
+  if #tasks == 1 then
+    build(tasks[1].command)
     return
   end
 
-  local content = file:read("*a")
-  file:close()
-
-  local ok, data = pcall(vim.json.decode, content)
-  if not ok or not data.configurations then
-    vim.notify("Invalid launch.json", vim.log.levels.ERROR)
-    return
-  end
-
-  -- collect candidates
-  local items = {}
-  for _, cfg in ipairs(data.configurations) do
-    if cfg.type == adapter and cfg.mode ~= "remote" then
-      if cfg.program then
-        table.insert(items, cfg.program)
-      end
-    end
-  end
-
-  if #items == 0 then
-    vim.notify("No matching" .. adapter .. "configurations", vim.log.levels.INFO)
-    return
-  end
-
-  local call = function(choice)
-    if choice then
-      local resolved = require("pkg.vscode").substitute(choice)
-      callback(resolved)
-    end
-  end
-
-  if #items == 1 then
-    call(items[1])
-    return
-  end
-
-  vim.ui.select(items, { prompt = "Select program:" }, call)
-end
-
-local langToCmd = {
-  zig = {
-    prg = "zig build -fincremental",
-    adapter = "codelldb",
-  },
-  go = {
-    prg = function(prg)
-      return "go run " .. prg
+  vim.ui.select(tasks, {
+    format_item = function(task)
+      return task.label
     end,
-    adapter = "go",
-  },
-}
-
-local function build()
-  local compile = require("compile").compile
-  local buildCmd = langToCmd[vim.bo.filetype]
-  if type(buildCmd.prg) == "string" then
-    compile(buildCmd.prg)
-  else
-    choose_program(buildCmd.adapter, function(prg)
-      local cmd = buildCmd(prg)
-      compile(cmd)
-    end)
-  end
+    prompt = "Select program:",
+  }, function(task)
+    build(task.command)
+  end)
 end
 
-local function filter(lines)
+local function filter(lines, match)
   local cleaned = {}
+  local matched
   for _, l in ipairs(lines or {}) do
     if l:match("%S+:%d+:%d+:") or l:match("%S+|%d+ col %d+|") then
       table.insert(cleaned, l)
     end
+    if match then
+      local m = l:match(match)
+      if m then
+        matched = m
+      end
+    end
   end
-  return cleaned
+  return cleaned, matched
 end
 
 local efm = {
@@ -129,57 +78,57 @@ end
 local ns = vim.api.nvim_create_namespace("build")
 local group = vim.api.nvim_create_augroup("build", { clear = true })
 
-local function toDiagnostic(items)
-  if #items == 0 then
-    return
-  end
-
-  local function set_buf_diagnostics(buf, buf_path)
-    if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) or vim.bo[buf].buftype ~= "" then
-      return
-    end
-    if not items or type(items) ~= "table" then
-      return
-    end
-
-    local ds = {}
-    for _, item in ipairs(items or {}) do
-      local fname = item.filename and vim.fn.fnamemodify(item.filename, ":p") or nil
-      if fname and fname == buf_path then
-        table.insert(ds, {
-          lnum = item.lnum,
-          col = item.col,
-          end_lnum = item.end_lnum or item.lnum,
-          end_col = item.end_col or item.col,
-          severity = vim.diagnostic.severity.ERROR,
-          source = item.source or "build",
-          message = item.text,
-        })
-      end
-    end
-    vim.diagnostic.set(ns, buf, ds, {})
-  end
-  -- set diagnostics for all currently loaded buffers
-  local bufs = vim.tbl_map(function(b)
-    return b.bufnr
-  end, vim.fn.getbufinfo({ bufloaded = 1, buflisted = 1 }))
-
-  for _, buf in ipairs(bufs) do
-    if vim.api.nvim_buf_is_loaded(buf) then
-      local buf_path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":p")
-      set_buf_diagnostics(buf, buf_path)
-    end
-  end
-
-  -- set diagnostics automatically for future buffers
-  vim.api.nvim_create_autocmd("BufReadPost", {
-    group = group,
-    callback = function(args)
-      local buf_path = vim.fn.fnamemodify(args.file, ":p")
-      set_buf_diagnostics(args.buf, buf_path)
-    end,
-  })
-end
+-- local function toDiagnostic(items)
+--   if #items == 0 then
+--     return
+--   end
+--
+--   local function set_buf_diagnostics(buf, buf_path)
+--     if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) or vim.bo[buf].buftype ~= "" then
+--       return
+--     end
+--     if not items or type(items) ~= "table" then
+--       return
+--     end
+--
+--     local ds = {}
+--     for _, item in ipairs(items or {}) do
+--       local fname = item.filename and vim.fn.fnamemodify(item.filename, ":p") or nil
+--       if fname and fname == buf_path then
+--         table.insert(ds, {
+--           lnum = item.lnum,
+--           col = item.col,
+--           end_lnum = item.end_lnum or item.lnum,
+--           end_col = item.end_col or item.col,
+--           severity = vim.diagnostic.severity.ERROR,
+--           source = item.source or "build",
+--           message = item.text,
+--         })
+--       end
+--     end
+--     vim.diagnostic.set(ns, buf, ds, {})
+--   end
+--   -- set diagnostics for all currently loaded buffers
+--   local bufs = vim.tbl_map(function(b)
+--     return b.bufnr
+--   end, vim.fn.getbufinfo({ bufloaded = 1, buflisted = 1 }))
+--
+--   for _, buf in ipairs(bufs) do
+--     if vim.api.nvim_buf_is_loaded(buf) then
+--       local buf_path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":p")
+--       set_buf_diagnostics(buf, buf_path)
+--     end
+--   end
+--
+--   -- set diagnostics automatically for future buffers
+--   vim.api.nvim_create_autocmd("BufReadPost", {
+--     group = group,
+--     callback = function(args)
+--       local buf_path = vim.fn.fnamemodify(args.file, ":p")
+--       set_buf_diagnostics(args.buf, buf_path)
+--     end,
+--   })
+-- end
 
 local function toQf(items)
   if #items == 0 then
@@ -196,6 +145,50 @@ local function toQf(items)
     title = "build",
     items = qf_items,
   })
+end
+
+---runs build and puts error output to quickfix and diagnostic
+---@param cmd string
+---@param match string?
+---@param on_match fun(match: string)?
+local function build(cmd, match, on_match)
+  local compile = require("compile")
+
+  local buildLines = {}
+  vim.diagnostic.reset(ns)
+  vim.fn.setqflist({}, "r", { title = "build", items = {} })
+  compile.compile(cmd)
+
+  vim.defer_fn(function()
+    vim.api.nvim_buf_attach(compile.term.state.buf, false, {
+      on_lines = function(_, _, _, first_changed, _, last_changed)
+        local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, first_changed, last_changed, false)
+
+        local matched
+        lines, matched = filter(lines, match)
+        vim.schedule(function()
+          if
+            not vim.api.nvim_buf_is_valid(compile.term.state.buf)
+            or not vim.api.nvim_buf_is_loaded(compile.term.state.buf)
+          then
+            return
+          end
+
+          if #lines > 0 then
+            for i in pairs(lines) do
+              table.insert(buildLines, lines[i])
+            end
+            local items = linesToItems(buildLines)
+            toQf(items)
+            -- toDiagnostic(items)
+          end
+          if matched then
+            on_match(matched)
+          end
+        end)
+      end,
+    })
+  end, 100)
 end
 
 --- @class CompileOutput
@@ -248,10 +241,10 @@ local function extract_between_markers(lines, marker_pattern)
 end
 
 local langToWatchCmd = {
-  zig = "zig build -fincremental --watch --debounce 2000",
-}
-local watchMarkers = {
-  zig = "^Build Summary:",
+  zig = {
+    cmd = "zig build -fincremental --watch --debounce 2000",
+    marker = "^Build Summary:",
+  },
 }
 
 return {
@@ -259,41 +252,12 @@ return {
   event = "VeryLazy",
   pin = true,
   opts = {},
+  buildFunc = build,
   keys = {
     {
       "<leader>cb",
       function()
-        local compile = require("compile")
-
-        local buildLines = {}
-        vim.diagnostic.reset(ns)
-        vim.fn.setqflist({}, "r", { title = "build", items = {} })
-        build()
-
-        vim.api.nvim_buf_attach(compile.term.state.buf, false, {
-          on_lines = function(_, _, _, first_changed, _, last_changed)
-            local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, first_changed, last_changed, false)
-
-            lines = filter(lines)
-            vim.schedule(function()
-              if
-                not vim.api.nvim_buf_is_valid(compile.term.state.buf)
-                or not vim.api.nvim_buf_is_loaded(compile.term.state.buf)
-              then
-                return
-              end
-
-              if #lines > 0 then
-                for i in pairs(lines) do
-                  table.insert(buildLines, lines[i])
-                end
-                local items = linesToItems(buildLines)
-                toQf(items)
-                toDiagnostic(items)
-              end
-            end)
-          end,
-        })
+        compileFromPreset(build)
       end,
       desc = "Code Terminal Build",
     },
@@ -308,30 +272,24 @@ return {
           return
         end
 
-        local marker = watchMarkers[vim.bo.filetype]
-        if not marker then
-          vim.notify("No watch marker for " .. vim.bo.filetype, vim.log.levels.WARN)
-          return
-        end
-
         vim.diagnostic.reset(ns)
         vim.fn.setqflist({}, "r", { title = "build" })
-        compile.compile(cmd)
+        compile.compile(cmd.cmd)
 
         local start_line = 0
         vim.api.nvim_buf_attach(compile.term.state.buf, false, {
           on_lines = function(_, _, _, first_changed, _, last_changed)
             local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, start_line, -1, false)
-            local output = extract_between_markers(lines, marker)
+            local output = extract_between_markers(lines, cmd.marker)
 
             vim.schedule(function()
               if output and output.lines then
                 start_line = output.start_line
-                local filtered_lines = filter(output.lines)
+                local filtered_lines, _ = filter(output.lines)
                 if #filtered_lines > 0 then
                   local items = linesToItems(filtered_lines)
                   toQf(items)
-                  toDiagnostic(items)
+                  -- toDiagnostic(items)
                 else
                   -- Clear diagnostics and qf if no errors
                   vim.diagnostic.reset(ns)

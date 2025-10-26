@@ -1,3 +1,25 @@
+--- @class Task
+--- @field label string
+--- type is a single command (like build) or watch to run a continuous command
+--- @field type 'shell' | 'watch'
+--- @field command string
+--- @field problemMatcher ProblemMatcher?
+--- ProblemMatcher defines an error reader format
+--- @class ProblemMatcher
+--- makes an error format templates based on the language compile error
+--- @field base string
+--- @field pattern ProblemPattern?
+--- @field background BackgroundMatcher?
+--- whether to put errors to quickfix
+--- @field quickfix boolean
+--- whether to put errors to diagnostic
+--- @field diagnostic boolean
+
+--- @class ProblemPattern
+
+--- @class BackgroundMatcher
+--- @field beginsPattern string
+
 local M = {}
 
 local placeholders = {
@@ -38,6 +60,147 @@ function M.substitute(str)
     str = str:gsub(pat, fn)
   end
   return str
+end
+
+local function readFile(name)
+  local path = vim.fn.getcwd() .. "/.vscode/" .. name .. ".json"
+  local file = io.open(path, "r")
+  if not file then
+    vim.notify("No .vscode/" .. name .. ".json found", vim.log.levels.INFO)
+    return {}
+  end
+
+  local content = file:read("*a")
+  file:close()
+  content = M.substitute(content)
+
+  local ok, data = pcall(vim.json.decode, content)
+  if not ok or not data.configurations then
+    vim.notify("Invalid " .. name .. ".json", vim.log.levels.ERROR)
+    return {}
+  end
+
+  return data
+end
+
+local function readLaunch()
+  return readFile("launch").configurations
+end
+
+--- @return Task[]
+local function readTasks()
+  return readFile("tasks").tasks
+end
+
+function M.getLaunch()
+  local configs = readLaunch()
+  if not configs then
+    return {}
+  end
+
+  local copy = {}
+  for _, conf in pairs(configs) do
+    table.insert(copy, conf)
+  end
+
+  return copy
+end
+
+local launchBuilders = {
+  zig = {
+    prg = function(prg)
+      return "zig build -fincremental"
+    end,
+    adapter = "codelldb",
+    ---@type Task[]
+    tasks = {
+      {
+        label = "zig build",
+        type = "shell",
+        command = "zig build -fincremental",
+      },
+    },
+  },
+  go = {
+    prg = function(prg)
+      return "go build " .. prg
+    end,
+    adapter = "go",
+  },
+}
+
+---@return Task[]
+local function makeDefaultTasks()
+  local ft = vim.bo.filetype
+  local launchBuilder = launchBuilders[ft]
+  if not launchBuilder then
+    vim.notify("no launch build found for ft=" .. ft, vim.log.levels.ERROR)
+    return {}
+  end
+
+  if launchBuilder.tasks then
+    return launchBuilder.tasks
+  end
+
+  local configurations = M.getLaunch()
+  local tasks = {}
+  for _, cfg in ipairs(configurations) do
+    if cfg.type == launchBuilder.adapter and cfg.mode ~= "remote" then
+      ---@type Task
+      local task = {
+        label = cfg.name,
+        type = "shell",
+        command = launchBuilder.prg(cfg.program),
+      }
+      table.insert(tasks, task)
+    end
+  end
+
+  return tasks
+end
+
+--- @return Task[]
+function M.getTasks()
+  local copy = {}
+
+  local tasks = readTasks()
+  if not tasks then
+    return makeDefaultTasks()
+  end
+
+  for _, task in pairs(tasks) do
+    if task.type == "shell" then
+      table.insert(copy, task)
+    end
+  end
+
+  if #copy == 0 then
+    return makeDefaultTasks()
+  end
+
+  return copy
+end
+
+--- @return Task[]
+function M.getWatchers()
+  local copy = {}
+
+  local tasks = readTasks()
+  if not tasks then
+    return makeDefaultTasks()
+  end
+
+  for _, task in pairs(tasks) do
+    if task.type == "watch" then
+      table.insert(copy, task)
+    end
+  end
+
+  if #copy == 0 then
+    return makeDefaultWatchers()
+  end
+
+  return copy
 end
 
 return M

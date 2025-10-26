@@ -14,40 +14,12 @@ local function build_and_debug()
   end
 
   local full_cmd = table.concat(build_cmd, " ")
-  compile.compile(full_cmd .. "; echo STATUS:$?")
-
-  local handled = false
-  local function on_lines(_, bufnr, _, first_line, last_line)
-    if handled then
-      return true
+  require("plugins.compile").buildFunc(full_cmd .. "; echo STATUS:$?", "^STATUS:(%d+)$", function(status)
+    if status == "0" then
+      compile.destroy()
+      quicktest.run_line(nil, "zig", { strategy = "dap" })
     end
-
-    local lines = vim.api.nvim_buf_get_lines(bufnr, first_line, last_line, false)
-    for _, line in ipairs(lines) do
-      -- Zig outputs "Build Summary: X/Y steps succeeded..."
-      local status = line:match("^STATUS:(%d+)$")
-      if status then
-        handled = true
-
-        vim.schedule(function()
-          if status == "0" then
-            compile.destroy()
-            quicktest.run_line(nil, "zig", { strategy = "dap" })
-          end
-        end)
-
-        return true
-      end
-    end
-  end
-
-  vim.defer_fn(function()
-    if vim.api.nvim_buf_is_valid(compile.term.state.buf) then
-      vim.api.nvim_buf_attach(compile.term.state.buf, false, {
-        on_lines = on_lines,
-      })
-    end
-  end, 100)
+  end)
 end
 
 return {
@@ -73,6 +45,7 @@ return {
   dependencies = {
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
+    "pohlrabi404/compile.nvim",
   },
   keys = {
     {
@@ -91,7 +64,7 @@ return {
       end,
       desc = "[T]est Run [L]line",
     },
-    -- TODO: for go dap temporary patch cwd
+    -- TODO: for go dap temporary patch cwd, otherwise go doesn't run
     {
       "<leader>td",
       function()
