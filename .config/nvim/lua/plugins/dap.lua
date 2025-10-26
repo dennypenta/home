@@ -1,4 +1,5 @@
 local signs = require("pkg.icons")
+local vscode = require("pkg.vscode")
 -- TODO: try not to use $file and the others
 -- TODO: remove enrich config when envFile merged: https://github.com/leoluz/nvim-dap-go/pull/115
 
@@ -48,27 +49,27 @@ local function on_dap_output(lang, output)
 end
 
 local function enrichConf(finalConfig, on_config)
-  local final_config = vim.deepcopy(finalConfig)
+  finalConfig = vim.deepcopy(finalConfig)
 
-  if not final_config.env then
-    final_config.env = {}
+  if not finalConfig.env then
+    finalConfig.env = {}
   end
   -- in order to make it an object, by default an empty {} is an array and the marshalling fails
-  final_config.env["VIM"] = "1"
+  finalConfig.env["VIM"] = "1"
 
-  if final_config.envFile then
-    local filePath = final_config.envFile
-    filePath = require("pkg.vscode").substitute(filePath)
+  if finalConfig.envFile then
+    local filePath = finalConfig.envFile
+    filePath = vscode.substitute(filePath)
 
     local file = io.open(filePath, "r")
     if not file then
-      print("File not found: " .. filePath)
+      vim.notify("File not found: " .. filePath, vim.log.levels.ERROR)
     else
       for line in file:lines() do
         local key, value = line:match("([^=]+)=(.+)")
         if key and value then
           value = value:match("^['\"](.-)['\"]$") or value
-          final_config.env[key] = value
+          finalConfig.env[key] = value
         end
       end
     end
@@ -77,12 +78,30 @@ local function enrichConf(finalConfig, on_config)
     end
   end
 
-  -- turn on stdout for go
-  if final_config["type"] == "go" then
-    final_config["outputMode"] = "remote"
+  -- for Go adapter to print to stdout
+  finalConfig["outputMode"] = "remote"
+
+  local compile = require("compile")
+  local preLaunchTask = finalConfig["preLaunchTask"]
+  if not preLaunchTask then
+    on_config(finalConfig)
+    return
   end
 
-  on_config(final_config)
+  local tasks = vscode.getTasks()
+  for _, task in pairs(tasks) do
+    if task.label == preLaunchTask then
+      task.command = task.command .. "; echo STATUS:$?"
+      require("plugins.compile").buildFunc(task, "^STATUS:(%d+)$", function(status)
+        if status == "0" then
+          compile.destroy()
+          on_config(finalConfig)
+        end
+      end)
+    end
+  end
+
+  return vim.notify("no task '" .. preLaunchTask .. "'found", vim.log.levels.ERROR)
 end
 
 local luaPort = 8086
@@ -239,6 +258,7 @@ return {
             command = "codelldb",
             args = { "--port", "${port}" },
           },
+          enrich_config = enrichConf,
         },
       }
       dap.configurations = {
