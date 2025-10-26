@@ -1,20 +1,34 @@
 local vscode = require("pkg.vscode")
 
-local function compileFromPreset(build)
-  local tasks = vscode.getTasks()
-  if #tasks == 1 then
-    build(tasks[1].command)
-    return
-  end
-
+local function selectTask(tasks, build)
   vim.ui.select(tasks, {
     format_item = function(task)
       return task.label
     end,
     prompt = "Select program:",
   }, function(task)
-    build(task.command)
+    build(task)
   end)
+end
+
+local function compileFromPreset(build)
+  local tasks = vscode.getTasks()
+  if #tasks == 1 then
+    build(tasks[1])
+    return
+  end
+
+  selectTask(tasks, build)
+end
+
+local function watchFromPreset(build)
+  local tasks = vscode.getWatchers()
+  if #tasks == 1 then
+    build(tasks[1])
+    return
+  end
+
+  selectTask(tasks, build)
 end
 
 local function filter(lines, match)
@@ -148,7 +162,7 @@ local function toQf(items)
 end
 
 ---runs build and puts error output to quickfix and diagnostic
----@param cmd string
+---@param cmd Task
 ---@param match string?
 ---@param on_match fun(match: string)?
 local function build(cmd, match, on_match)
@@ -157,9 +171,14 @@ local function build(cmd, match, on_match)
   local buildLines = {}
   vim.diagnostic.reset(ns)
   vim.fn.setqflist({}, "r", { title = "build", items = {} })
-  compile.compile(cmd)
+  compile.compile(cmd.command)
 
   vim.defer_fn(function()
+    -- Prevent other buffers from opening in the terminal window
+    if compile.term.state.win and vim.api.nvim_win_is_valid(compile.term.state.win) then
+      vim.wo[compile.term.state.win].winfixbuf = true
+    end
+
     vim.api.nvim_buf_attach(compile.term.state.buf, false, {
       on_lines = function(_, _, _, first_changed, _, last_changed)
         local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, first_changed, last_changed, false)
@@ -240,13 +259,6 @@ local function extract_between_markers(lines, marker_pattern)
   }
 end
 
-local langToWatchCmd = {
-  zig = {
-    cmd = "zig build -fincremental --watch --debounce 2000",
-    marker = "^Build Summary:",
-  },
-}
-
 return {
   "pohlrabi404/compile.nvim",
   event = "VeryLazy",
@@ -264,41 +276,44 @@ return {
     {
       "<leader>cB",
       function()
-        local compile = require("compile")
+        ---@param task Task
+        local function watch(task)
+          vim.diagnostic.reset(ns)
+          vim.fn.setqflist({}, "r", { title = "build" })
 
-        local cmd = langToWatchCmd[vim.bo.filetype]
-        if not cmd then
-          vim.notify("No watch command for " .. vim.bo.filetype, vim.log.levels.WARN)
-          return
-        end
+          local compile = require("compile")
+          compile.compile(task.command)
 
-        vim.diagnostic.reset(ns)
-        vim.fn.setqflist({}, "r", { title = "build" })
-        compile.compile(cmd.cmd)
+          -- Prevent other buffers from opening in the terminal window
+          if compile.term.state.win and vim.api.nvim_win_is_valid(compile.term.state.win) then
+            vim.wo[compile.term.state.win].winfixbuf = true
+          end
 
-        local start_line = 0
-        vim.api.nvim_buf_attach(compile.term.state.buf, false, {
-          on_lines = function(_, _, _, first_changed, _, last_changed)
-            local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, start_line, -1, false)
-            local output = extract_between_markers(lines, cmd.marker)
+          local start_line = 0
+          vim.api.nvim_buf_attach(compile.term.state.buf, false, {
+            on_lines = function(_, _, _, first_changed, _, last_changed)
+              local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, start_line, -1, false)
+              local output = extract_between_markers(lines, task.problemMatcher.background.beginsPattern)
 
-            vim.schedule(function()
-              if output and output.lines then
-                start_line = output.start_line
-                local filtered_lines, _ = filter(output.lines)
-                if #filtered_lines > 0 then
-                  local items = linesToItems(filtered_lines)
-                  toQf(items)
+              vim.schedule(function()
+                if output and output.lines then
+                  start_line = output.start_line
+                  local filtered_lines, _ = filter(output.lines)
+                  if #filtered_lines > 0 then
+                    local items = linesToItems(filtered_lines)
+                    toQf(items)
                   -- toDiagnostic(items)
-                else
-                  -- Clear diagnostics and qf if no errors
-                  vim.diagnostic.reset(ns)
-                  vim.fn.setqflist({}, "r", { title = "build", items = {} })
+                  else
+                    -- Clear diagnostics and qf if no errors
+                    vim.diagnostic.reset(ns)
+                    vim.fn.setqflist({}, "r", { title = "build", items = {} })
+                  end
                 end
-              end
-            end)
-          end,
-        })
+              end)
+            end,
+          })
+        end
+        watchFromPreset(watch)
       end,
       desc = "Code Terminal Watch",
     },

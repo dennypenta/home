@@ -7,13 +7,9 @@
 --- ProblemMatcher defines an error reader format
 --- @class ProblemMatcher
 --- makes an error format templates based on the language compile error
---- @field base string
+--- @field base string?
 --- @field pattern ProblemPattern?
 --- @field background BackgroundMatcher?
---- whether to put errors to quickfix
---- @field quickfix boolean
---- whether to put errors to diagnostic
---- @field diagnostic boolean
 
 --- @class ProblemPattern
 
@@ -129,6 +125,24 @@ local launchBuilders = {
   },
 }
 
+local defaultWatchBuilders = {
+  zig = {
+    ---@type Task[]
+    watchers = {
+      {
+        label = "zig build watch",
+        type = "watch",
+        command = "zig build -fincremental --watch --debounce 2000",
+        problemMatcher = {
+          background = {
+            beginsPattern = "^Build Summary:",
+          },
+        },
+      },
+    },
+  },
+}
+
 ---@return Task[]
 local function makeDefaultTasks()
   local ft = vim.bo.filetype
@@ -181,13 +195,29 @@ function M.getTasks()
   return copy
 end
 
+---@return Task[]
+local function makeDefaultWatchers()
+  local ft = vim.bo.filetype
+  local watchBuilder = defaultWatchBuilders[ft]
+  if not watchBuilder then
+    vim.notify("no watch builder found for ft=" .. ft, vim.log.levels.ERROR)
+    return {}
+  end
+
+  if watchBuilder.watchers then
+    return watchBuilder.watchers
+  end
+
+  return {}
+end
+
 --- @return Task[]
 function M.getWatchers()
   local copy = {}
 
   local tasks = readTasks()
   if not tasks then
-    return makeDefaultTasks()
+    return makeDefaultWatchers()
   end
 
   for _, task in pairs(tasks) do
