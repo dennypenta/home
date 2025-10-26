@@ -228,7 +228,6 @@ function M.outputToErrors(lines, match, on_match)
 
   local matched
   lines, matched = filter(lines, match)
-  print(1)
   vim.schedule(function()
     if #lines > 0 then
       for i in pairs(lines) do

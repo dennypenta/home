@@ -22,7 +22,6 @@ local function enrichConf(finalConfig, on_config)
     -- in order to make it an object, by default an empty {} is an array and the marshalling fails
     finalConfig.env = { ["VIM"] = "1" }
   end
-
   if finalConfig.envFile then
     local filePath = finalConfig.envFile
     filePath = vscode.substitute(filePath)
@@ -234,10 +233,14 @@ return {
       }
       dap.listeners.after["event_output"]["this"] = function(session, body)
         if body.category == "stderr" and not session.initialized then
-          on_dap_output(session.config.type, body.output)
-          vim.api.nvim_command("copen")
-          local dapui = require("dapui")
-          vim.defer_fn(dapui.close, 100)
+          vim.schedule(function()
+            on_dap_output(session.config.type, body.output)
+            vim.api.nvim_command("copen")
+            local dapui = require("dapui")
+            vim.schedule(function()
+              dapui.close()
+            end)
+          end)
         end
       end
       dap.listeners.after["event_initialized"]["this"] = function(session, body)
