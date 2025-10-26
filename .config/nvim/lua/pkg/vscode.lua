@@ -16,8 +16,6 @@
 --- @class BackgroundMatcher
 --- @field beginsPattern string
 
-local M = {}
-
 local placeholders = {
   ["${file}"] = function(_)
     return vim.fn.expand("%:p")
@@ -50,6 +48,26 @@ local placeholders = {
     return os.getenv(match) or ""
   end,
 }
+
+local M = {}
+
+---@class DefaultTaskBuilder
+---@field tasks? Task[]
+---@field fromLaunch? fun(prg: string): string
+---@field adapter? string
+
+---@class DefaultWatchBuilder
+---@field watchers Task[]
+
+---@class Opts
+---@field defaultTaskBuilders table<string, DefaultTaskBuilder>
+---@field defaultWatchBuilders table<string, DefaultWatchBuilder>
+
+---@param opts Opts
+function M.setup(opts)
+  M.defaultTaskBuilders = opts.defaultTaskBuilders
+  M.defaultWatchBuilders = opts.defaultWatchBuilders
+end
 
 function M.substitute(str)
   for pat, fn in pairs(placeholders) do
@@ -102,51 +120,10 @@ function M.getLaunch()
   return copy
 end
 
-local launchBuilders = {
-  zig = {
-    prg = function(prg)
-      return "zig build -fincremental"
-    end,
-    adapter = "codelldb",
-    ---@type Task[]
-    tasks = {
-      {
-        label = "zig build",
-        type = "shell",
-        command = "zig build -fincremental",
-      },
-    },
-  },
-  go = {
-    prg = function(prg)
-      return "go build " .. prg
-    end,
-    adapter = "go",
-  },
-}
-
-local defaultWatchBuilders = {
-  zig = {
-    ---@type Task[]
-    watchers = {
-      {
-        label = "zig build watch",
-        type = "watch",
-        command = "zig build -fincremental --watch --debounce 2000",
-        problemMatcher = {
-          background = {
-            beginsPattern = "^Build Summary:",
-          },
-        },
-      },
-    },
-  },
-}
-
 ---@return Task[]
 local function makeDefaultTasks()
   local ft = vim.bo.filetype
-  local launchBuilder = launchBuilders[ft]
+  local launchBuilder = M.defaultTaskBuilders[ft]
   if not launchBuilder then
     vim.notify("no launch build found for ft=" .. ft, vim.log.levels.ERROR)
     return {}
@@ -164,7 +141,7 @@ local function makeDefaultTasks()
       local task = {
         label = cfg.name,
         type = "shell",
-        command = launchBuilder.prg(cfg.program),
+        command = launchBuilder.fromLaunch(cfg.program),
       }
       table.insert(tasks, task)
     end
@@ -198,7 +175,7 @@ end
 ---@return Task[]
 local function makeDefaultWatchers()
   local ft = vim.bo.filetype
-  local watchBuilder = defaultWatchBuilders[ft]
+  local watchBuilder = M.defaultWatchBuilders[ft]
   if not watchBuilder then
     vim.notify("no watch builder found for ft=" .. ft, vim.log.levels.ERROR)
     return {}
@@ -245,5 +222,43 @@ function M.find_task(label)
   end
   return nil
 end
+
+M.setup({
+  defaultTaskBuilders = {
+    zig = {
+      ---@type Task[]
+      tasks = {
+        {
+          label = "zig build",
+          type = "shell",
+          command = "zig build -fincremental",
+        },
+      },
+    },
+    go = {
+      fromLaunch = function(prg)
+        return "go build " .. prg
+      end,
+      adapter = "go",
+    },
+  },
+  defaultWatchBuilders = {
+    zig = {
+      ---@type Task[]
+      watchers = {
+        {
+          label = "zig build watch",
+          type = "watch",
+          command = "zig build -fincremental --watch --debounce 2000",
+          problemMatcher = {
+            background = {
+              beginsPattern = "^Build Summary:",
+            },
+          },
+        },
+      },
+    },
+  },
+})
 
 return M

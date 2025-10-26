@@ -1,3 +1,4 @@
+local renner = require("pkg.renner")
 local signs = require("pkg.icons")
 local vscode = require("pkg.vscode")
 -- TODO: try not to use $file and the others
@@ -11,51 +12,16 @@ local signIcons = {
   DapBreakpointRejected = signs.Dap.BreakpointRejected,
 }
 
-local lang_to_pattern = {
-  go = "^(.-):(%d+):(%d+):%s*(.*)$",
-}
-
-local function parse_go_error(lang, line)
-  -- example format: "%f:%l:%c: %m"
-  -- /path/to/file.go:10:5: error message
-  local pattern = lang_to_pattern[lang]
-  local file, lnum, col, message = line:match(pattern)
-  if file and lnum and col and message then
-    return {
-      filename = file,
-      lnum = tonumber(lnum),
-      col = tonumber(col),
-      text = message,
-      type = "E",
-    }
-  end
-  return nil
-end
-
 local function on_dap_output(lang, output)
-  local output_lines = vim.split(output, "\n")
-  local qflist = {}
-  for _, line in ipairs(output_lines) do
-    local entry = parse_go_error(lang, line)
-    if entry then
-      table.insert(qflist, entry)
-    end
-  end
-
-  if #qflist > 0 then
-    vim.fn.setqflist({}, "r", { title = "Go Compilation Errors", items = qflist })
-    vim.api.nvim_command("copen")
-  end
+  local lines = vim.split(output, "\n")
+  renner.outputToErrors(lines)
 end
 
 local function enrichConf(finalConfig, on_config)
-  finalConfig = vim.deepcopy(finalConfig)
-
   if not finalConfig.env then
-    finalConfig.env = {}
+    -- in order to make it an object, by default an empty {} is an array and the marshalling fails
+    finalConfig.env = { ["VIM"] = "1" }
   end
-  -- in order to make it an object, by default an empty {} is an array and the marshalling fails
-  finalConfig.env["VIM"] = "1"
 
   if finalConfig.envFile then
     local filePath = finalConfig.envFile
@@ -81,7 +47,6 @@ local function enrichConf(finalConfig, on_config)
   -- for Go adapter to print to stdout
   finalConfig["outputMode"] = "remote"
 
-  local renner = require("pkg.renner")
   local preLaunchTask = finalConfig["preLaunchTask"]
   if not preLaunchTask then
     on_config(finalConfig)
@@ -270,6 +235,9 @@ return {
       dap.listeners.after["event_output"]["this"] = function(session, body)
         if body.category == "stderr" and not session.initialized then
           on_dap_output(session.config.type, body.output)
+          vim.api.nvim_command("copen")
+          local dapui = require("dapui")
+          vim.defer_fn(dapui.close, 100)
         end
       end
       dap.listeners.after["event_initialized"]["this"] = function(session, body)
