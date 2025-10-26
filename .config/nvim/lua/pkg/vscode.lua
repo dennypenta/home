@@ -233,4 +233,17 @@ function M.getWatchers()
   return copy
 end
 
+--- Find a task by label
+--- @param label string
+--- @return Task?
+function M.find_task(label)
+  local tasks = M.getTasks()
+  for _, task in pairs(tasks) do
+    if task.label == label then
+      return task
+    end
+  end
+  return nil
+end
+
 return M

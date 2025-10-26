@@ -81,27 +81,24 @@ local function enrichConf(finalConfig, on_config)
   -- for Go adapter to print to stdout
   finalConfig["outputMode"] = "remote"
 
-  local compile = require("compile")
+  local renner = require("pkg.renner")
   local preLaunchTask = finalConfig["preLaunchTask"]
   if not preLaunchTask then
     on_config(finalConfig)
     return
   end
 
-  local tasks = vscode.getTasks()
-  for _, task in pairs(tasks) do
-    if task.label == preLaunchTask then
-      task.command = task.command .. "; echo STATUS:$?"
-      require("plugins.compile").buildFunc(task, "^STATUS:(%d+)$", function(status)
-        if status == "0" then
-          compile.destroy()
-          on_config(finalConfig)
-        end
-      end)
-    end
+  local task = vscode.find_task(preLaunchTask)
+  if not task then
+    return vim.notify("no task '" .. preLaunchTask .. "'found", vim.log.levels.ERROR)
   end
 
-  return vim.notify("no task '" .. preLaunchTask .. "'found", vim.log.levels.ERROR)
+  renner.run_task_then({
+    task = task,
+    on_success = function()
+      on_config(finalConfig)
+    end,
+  })
 end
 
 local luaPort = 8086

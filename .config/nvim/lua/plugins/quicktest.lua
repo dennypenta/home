@@ -4,7 +4,7 @@ local args_by_ft = {
 
 local function build_and_debug()
   local quicktest = require("quicktest")
-  local compile = require("compile")
+  local renner = require("pkg.renner")
 
   local build_cmd = quicktest.get_build_line("auto", { cmd_override = { "build", "btest", "--summary", "all" } })
 
@@ -13,13 +13,16 @@ local function build_and_debug()
     return
   end
 
-  local full_cmd = table.concat(build_cmd, " ")
-  require("plugins.compile").buildFunc(full_cmd .. "; echo STATUS:$?", "^STATUS:(%d+)$", function(status)
-    if status == "0" then
-      compile.destroy()
+  local task = {
+    command = table.concat(build_cmd, " "),
+  }
+
+  renner.run_task_then({
+    task = task,
+    on_success = function()
       quicktest.run_line(nil, "zig", { strategy = "dap" })
-    end
-  end)
+    end,
+  })
 end
 
 return {
