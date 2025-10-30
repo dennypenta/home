@@ -19,7 +19,6 @@ return {
       grep = {
         no_ignore = false,
         hidden = true,
-
       },
       actions = {
         files = {
@@ -48,26 +47,25 @@ return {
         builtin = {
           -- neovim `:tmap` mappings for the fzf win
           true, -- uncomment to inherit all the below in your custom config
-          ["<F1>"]     = "toggle-help",
+          ["<F1>"] = "toggle-help",
           ["<S-Left>"] = "preview-reset",
           ["<S-down>"] = "preview-page-down",
-          ["<S-up>"]   = "preview-page-up",
+          ["<S-up>"] = "preview-page-up",
         },
         fzf = {
           -- fzf '--bind=' options
           true, -- uncomment to inherit all the below in your custom config
-          ["ctrl-d"]     = "half-page-down",
-          ["ctrl-u"]     = "half-page-up",
-          ["ctrl-b"]     = "beginning-of-line",
-          ["ctrl-e"]     = "end-of-line",
-          ["ctrl-h"]     = "first",
-          ["ctrl-l"]     = "last",
+          ["ctrl-d"] = "half-page-down",
+          ["ctrl-u"] = "half-page-up",
+          ["ctrl-b"] = "beginning-of-line",
+          ["ctrl-e"] = "end-of-line",
+          ["ctrl-h"] = "first",
+          ["ctrl-l"] = "last",
           ["shift-down"] = "preview-page-down",
-          ["shift-up"]   = "preview-page-up",
-          ["ctrl-q"]     = "select-all+accept",
+          ["shift-up"] = "preview-page-up",
+          ["ctrl-q"] = "select-all+accept",
         },
       },
-
     })
     require("fzf-lua").register_ui_select()
   end,
@@ -91,7 +89,11 @@ return {
       "<leader>fm",
       function()
         local cwd = root.root_of_module()
-        require("fzf-lua").files({cwd = cwd,  cmd = "rg --files", rg_opts = [[--color=never --hidden --files --no-ignore]] })
+        require("fzf-lua").files({
+          cwd = cwd,
+          cmd = "rg --files",
+          rg_opts = [[--color=never --hidden --files --no-ignore]],
+        })
       end,
       desc = "Fzf files + .git",
     },
@@ -108,10 +110,9 @@ return {
       "<leader>/",
       function()
         -- default opts + fixed-strings
-        require('fzf-lua').live_grep({
+        require("fzf-lua").live_grep({
           file_ignore_patterns = ignore_pattern,
-          rg_opts =
-          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
+          rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e",
         })
       end,
       desc = "Fzf search (plain string)",
@@ -120,11 +121,10 @@ return {
       "<C-/>",
       function()
         -- default opts + fixed-strings
-        require('fzf-lua').live_grep({
+        require("fzf-lua").live_grep({
           file_ignore_patterns = ignore_pattern,
           resume = true,
-          rg_opts =
-          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
+          rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e",
         })
       end,
       desc = "Fzf search last (plain text)",
@@ -133,9 +133,8 @@ return {
       "<leader>fs",
       function()
         -- default opts + fixed-strings
-        require('fzf-lua').live_grep({
-          rg_opts =
-          "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e"
+        require("fzf-lua").live_grep({
+          rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --fixed-strings -e",
         })
       end,
       desc = "Fzf search + .git (plain string)",
@@ -144,14 +143,14 @@ return {
     {
       "<leader>fg",
       function()
-        require('fzf-lua').live_grep({ file_ignore_patterns = ignore_pattern })
+        require("fzf-lua").live_grep({ file_ignore_patterns = ignore_pattern })
       end,
       desc = "Fzf grep (regex)",
     },
     {
       "<leader>fG",
       function()
-        require('fzf-lua').live_grep({ file_ignore_patterns = ignore_pattern, resume = true })
+        require("fzf-lua").live_grep({ file_ignore_patterns = ignore_pattern, resume = true })
       end,
       desc = "Fzf grep last (regex)",
     },
@@ -182,7 +181,9 @@ return {
     {
       "<leader>uc",
       function()
-        require("fzf-lua").colorschemes()
+        require("fzf-lua").colorschemes({
+          colors = { "retrobox", "habamax", "kanagawa-lotus", "kanagawa-dragon" },
+        })
       end,
       desc = "Fzf colorscheme",
     },

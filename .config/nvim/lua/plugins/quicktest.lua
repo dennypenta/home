@@ -2,11 +2,11 @@ local args_by_ft = {
   go = { "-v", "-failfast", "-race", "short", "-count=1" },
 }
 
-local function build_and_debug()
+local function build_debug(builder)
   local quicktest = require("quicktest")
   local renner = require("pkg.renner")
 
-  local build_cmd = quicktest.get_build_line("auto", { cmd_override = { "build", "btest", "--summary", "all" } })
+  local build_cmd, params = builder("auto", { cmd_override = { "build", "btest", "--summary", "all" } })
 
   if not build_cmd then
     vim.notify("No build command available", vim.log.levels.ERROR)
@@ -20,9 +20,19 @@ local function build_and_debug()
   renner.run_task_then({
     task = task,
     on_success = function()
-      quicktest.run_line(nil, "zig", { strategy = "dap" })
+      quicktest.run_cmd(nil, "zig", params, { strategy = "dap" })
     end,
   })
+end
+
+local function build_and_debug_line()
+  local quicktest = require("quicktest")
+  build_debug(quicktest.get_build_line)
+end
+
+local function build_and_debug_file()
+  local quicktest = require("quicktest")
+  build_debug(quicktest.get_build_file)
 end
 
 return {
@@ -33,6 +43,7 @@ return {
 
     -- update quick test type annotations
     qt.setup({
+      debug = true,
       adapters = {
         require("quicktest.adapters.golang")(),
         require("quicktest.adapters.zig")({ test_filter_flag = "-Dtest-filter" }),
@@ -79,9 +90,16 @@ return {
     {
       "<leader>tD",
       function()
-        build_and_debug()
+        build_and_debug_line()
       end,
-      desc = "[D]ebug [L]line",
+      desc = "[t]est [D]ebug Line",
+    },
+    {
+      "<leader>tF",
+      function()
+        build_and_debug_file()
+      end,
+      desc = "[t]est Debug [F]ile",
     },
     {
       "<leader>tf",

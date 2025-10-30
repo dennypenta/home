@@ -12,6 +12,7 @@ local signIcons = {
   DapBreakpointRejected = signs.Dap.BreakpointRejected,
 }
 
+-- TODO: move out explicit compile step
 local function on_dap_output(lang, output)
   local lines = vim.split(output, "\n")
   renner.outputToErrors(lines)
@@ -45,6 +46,7 @@ local function enrichConf(finalConfig, on_config)
 
   -- for Go adapter to print to stdout
   finalConfig["outputMode"] = "remote"
+  finalConfig["terminal"] = "console"
 
   local preLaunchTask = finalConfig["preLaunchTask"]
   if not preLaunchTask then
