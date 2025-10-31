@@ -182,7 +182,7 @@ return {
       "<leader>uc",
       function()
         require("fzf-lua").colorschemes({
-          colors = { "retrobox", "habamax", "kanagawa-lotus", "kanagawa-dragon" },
+          colors = { "retrobox", "habamax", "kanagawa-dragon", "delek" },
         })
       end,
       desc = "Fzf colorscheme",

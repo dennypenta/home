@@ -65,6 +65,9 @@ vim.api.nvim_create_autocmd("FileType", {
     "lazy",
     "qf",
     "vim",
+    "dap-view",
+    "dap-view-term",
+    "dap-repl",
   },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
@@ -115,7 +118,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
     local Colors = require("config.colors")
     -- TODO: move to all the colors
-    vim.api.nvim_set_hl(0, 'LspCodeLens', { fg = Colors.lens, bg = nil, bold = true })
-    vim.api.nvim_set_hl(0, 'LspCodeLensSign', { fg = Colors.lensIcon, bg = nil, bold = true })
+    vim.api.nvim_set_hl(0, "LspCodeLens", { fg = Colors.lens, bg = nil, bold = true })
+    vim.api.nvim_set_hl(0, "LspCodeLensSign", { fg = Colors.lensIcon, bg = nil, bold = true })
   end,
 })

@@ -107,20 +107,6 @@ return {
         desc = "Run/Continue",
       },
       {
-        "<leader>dd",
-        function()
-          require("dap").run_last()
-        end,
-        desc = "Run Last",
-      },
-      {
-        "<leader>dB",
-        function()
-          require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
-        end,
-        desc = "Breakpoint Condition",
-      },
-      {
         "<F1>",
         function()
           require("dap").step_over()
@@ -175,13 +161,6 @@ return {
           require("dap").terminate()
         end,
         desc = "Terminate",
-      },
-      {
-        "<leader>dr",
-        function()
-          require("dap").repl.toggle()
-        end,
-        desc = "Toggle REPL",
       },
     },
     config = function()
@@ -238,9 +217,8 @@ return {
           vim.schedule(function()
             on_dap_output(session.config.type, body.output)
             vim.api.nvim_command("copen")
-            local dapui = require("dapui")
             vim.schedule(function()
-              dapui.close()
+              require("dapui").close()
             end)
           end)
         end
@@ -248,12 +226,11 @@ return {
       dap.listeners.after["event_initialized"]["this"] = function(session, body)
         vim.fn.setqflist({}, "r", { items = {} })
       end
-      local dapui = require("dapui")
       dap.listeners.before.attach.dapui_config = function()
-        dapui.open()
+        require("dapui").open()
       end
       dap.listeners.before.launch.dapui_config = function()
-        dapui.open()
+        require("dapui").open()
       end
       -- don't close on termination
       dap.listeners.before.event_terminated.dapui_config = function() end

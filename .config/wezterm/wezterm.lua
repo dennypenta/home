@@ -21,13 +21,13 @@ return {
 		-- { key = "Backspace", mods = "ALT", action = wezterm.action.SendString("\x1b\x7f") }, -- Delete word
 		{
 			mods = "LEADER",
-			key = "-",
-			action = wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }),
+			key = "v",
+			action = wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }),
 		},
 		{
 			mods = "LEADER",
-			key = "=",
-			action = wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }),
+			key = "s",
+			action = wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }),
 		},
 		{
 			key = "w",
@@ -42,10 +42,16 @@ return {
 		-- Move tabs left and right
 		{ key = "{", mods = "SHIFT|ALT", action = wezterm.action.MoveTabRelative(-1) },
 		{ key = "}", mods = "SHIFT|ALT", action = wezterm.action.MoveTabRelative(1) },
-		-- SHIFT + CTRL         LeftArrow          ->   ActivatePaneDirection(Left)
-		-- SHIFT + CTRL         RightArrow         ->   ActivatePaneDirection(Right)
-		-- SHIFT + CTRL         UpArrow            ->   ActivatePaneDirection(Up)
-		-- SHIFT + CTRL         DownArrow          ->   ActivatePaneDirection(Down)
+
+		{ key = "h", mods = "LEADER", action = wezterm.action.ActivatePaneDirection("Left") },
+		{ key = "l", mods = "LEADER", action = wezterm.action.ActivatePaneDirection("Right") },
+		{ key = "j", mods = "LEADER", action = wezterm.action.ActivatePaneDirection("Down") },
+		{ key = "k", mods = "LEADER", action = wezterm.action.ActivatePaneDirection("Up") },
+
+		{ key = "-", mods = "CMD", action = wezterm.action.AdjustPaneSize({ "Left", 4 }) },
+		{ key = "=", mods = "CMD", action = wezterm.action.AdjustPaneSize({ "Right", 4 }) },
+		{ key = "+", mods = "CMD", action = wezterm.action.AdjustPaneSize({ "Down", 4 }) },
+		{ key = "_", mods = "CMD", action = wezterm.action.AdjustPaneSize({ "Up", 4 }) },
 
 		-- CTRL+SHIFT+ALT	LeftArrow	AdjustPaneSize={"Left", 1}
 		-- CTRL+SHIFT+ALT	RightArrow	AdjustPaneSize={"Right", 1}
@@ -54,7 +60,7 @@ return {
 	},
 
 	-- theme
-	window_background_opacity = 0.88,
+	-- window_background_opacity = 0.88,
 	font = wezterm.font_with_fallback({
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = false },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = false },
@@ -62,7 +68,7 @@ return {
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = true },
 	}),
 	-- color_scheme = "nightfox",
-    color_scheme = 'Kanagawa Dragon (Gogh)',
-    -- color_scheme ='Catppuccin Latte',
+	color_scheme = "Kanagawa Dragon (Gogh)",
+	-- color_scheme ='Catppuccin Latte',
 	font_size = 14.0,
 }
