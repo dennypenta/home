@@ -263,30 +263,29 @@ return {
   {
     "rcarriga/nvim-dap-ui",
     pin = true,
-    dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
+    dependencies = { "nvim-neotest/nvim-nio" },
     -- stylua: ignore
     keys = {
       { "<leader>du", function() require("dapui").toggle({}) end, desc = "Dap UI" },
-      { "<leader>de", function() require("dapui").eval() end,     desc = "Eval",  mode = { "n", "v" } },
     },
     opts = {
       layouts = {
         {
           elements = {
-            { id = "scopes", size = 0.6 },
-            { id = "breakpoints", size = 0.2 },
-            { id = "stacks", size = 0.2 },
+            { id = "scopes", size = 0.5 },
+            { id = "breakpoints", size = 0.25 },
+            { id = "stacks", size = 0.25 },
           },
           position = "left",
           size = 40,
         },
         {
           elements = {
-            { id = "repl", size = 0.5 },
-            { id = "console", size = 0.5 },
+            { id = "repl", size = 1 },
+            -- { id = "console", size = 0.5 },
           },
           position = "bottom",
-          size = 10,
+          size = 12,
         },
       },
       mappings = {
