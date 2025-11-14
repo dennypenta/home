@@ -33,7 +33,7 @@ o.gdefault = true
 o.termguicolors = true
 o.signcolumn = "yes:2"
 -- o.colorcolumn = "120"
-vim.cmd("colorscheme habamax")
+vim.cmd("colorscheme retrobox")
 o.showmatch = true -- brackets highlighting
 o.showmode = true
 -- delist menuone in order to exclude builtin completion and make it only using blink.cmp or whatever you like

@@ -6,7 +6,7 @@ local function build_debug(builder)
   local quicktest = require("quicktest")
   local renner = require("pkg.renner")
 
-  local build_cmd, params = builder("auto", { cmd_override = { "build", "btest", "--summary", "all" } })
+  local build_cmd, params = builder("auto", { cmd_override = { "build", "btest", "--summary", "failures" } })
 
   if not build_cmd then
     vim.notify("No build command available", vim.log.levels.ERROR)

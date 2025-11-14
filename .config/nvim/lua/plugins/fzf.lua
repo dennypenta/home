@@ -179,10 +179,11 @@ return {
     },
     -- colors
     {
-      "<leader>uc",
+      "<leader>uC",
       function()
         require("fzf-lua").colorschemes({
-          colors = { "retrobox", "habamax", "kanagawa-dragon", "delek" },
+          -- colors = { "retrobox", "habamax", "kanagawa-dragon", "delek" },
+          colors = { "kanagawa", "modus" },
         })
       end,
       desc = "Fzf colorscheme",

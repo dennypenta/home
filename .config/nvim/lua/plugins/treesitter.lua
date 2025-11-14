@@ -98,8 +98,8 @@ return {
     event = { "VeryLazy", "BufReadPre", "BufNewFile" },
     opts = {
       enable = true,
-      max_lines = 4,    -- How many lines the window should span. Values <= 0 mean no limit.
-      mode = 'topline', -- Line used to calculate context. Choices: 'cursor', 'topline'
+      max_lines = 4, -- How many lines the window should span. Values <= 0 mean no limit.
+      mode = "topline", -- Line used to calculate context. Choices: 'cursor', 'topline'
     },
     keys = {
       {
@@ -159,24 +159,25 @@ return {
           enable = true,
           swap_next = {
             ["<leader>ma"] = "@parameter.inner", -- swap parameters/argument with next
-            ["<leader>mr"] = "@property.outer",  -- swap object property with next
-            ["<leader>mf"] = "@function.outer",  -- swap function with next
+            ["<leader>mr"] = "@property.outer", -- swap object property with next
+            ["<leader>mf"] = "@function.outer", -- swap function with next
           },
           swap_previous = {
             ["<leader>Ma"] = "@parameter.inner", -- swap parameters/argument with prev
-            ["<leader>Mr"] = "@property.outer",  -- swap object property with prev
-            ["<leader>Mf"] = "@function.outer",  -- swap function with previous
+            ["<leader>Mr"] = "@property.outer", -- swap object property with prev
+            ["<leader>Mf"] = "@function.outer", -- swap function with previous
           },
         },
         move = {
           enable = true,
-          set_jumps = true, -- whether to set jumps in the jumplist
+          set_jumps = false, -- whether to set jumps in the jumplist
           goto_next_start = {
             ["]o"] = { query = "@call.outer", desc = "Next function call start" },
             ["]f"] = { query = "@function.outer", desc = "Next method/function def start" },
             ["]c"] = { query = "@class.outer", desc = "Next class start" },
             ["]i"] = { query = "@conditional.outer", desc = "Next conditional start" },
             ["]l"] = { query = "@loop.outer", desc = "Next loop start" },
+            ["]a"] = { query = "@parameter.inner", desc = "Next argument start" },
           },
           goto_next_end = {
             ["]O"] = { query = "@call.outer", desc = "Next function call end" },
@@ -184,6 +185,7 @@ return {
             ["]C"] = { query = "@class.outer", desc = "Next class end" },
             ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
             ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
+            ["]A"] = { query = "@parameter.outer", desc = "Next argument end" },
           },
           goto_previous_start = {
             ["[o"] = { query = "@call.outer", desc = "Prev function call start" },
@@ -191,6 +193,7 @@ return {
             ["[c"] = { query = "@class.outer", desc = "Prev class start" },
             ["[i"] = { query = "@conditional.outer", desc = "Prev conditional start" },
             ["[l"] = { query = "@loop.outer", desc = "Prev loop start" },
+            ["[a"] = { query = "@parameter.inner", desc = "Prev argument start" },
           },
           goto_previous_end = {
             ["[O"] = { query = "@call.outer", desc = "Prev function call end" },
@@ -198,6 +201,7 @@ return {
             ["[C"] = { query = "@class.outer", desc = "Prev class end" },
             ["[I"] = { query = "@conditional.outer", desc = "Prev conditional end" },
             ["[L"] = { query = "@loop.outer", desc = "Prev loop end" },
+            ["[A"] = { query = "@parameter.outer", desc = "Prev argument end" },
           },
         },
       },

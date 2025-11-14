@@ -290,7 +290,7 @@ return {
       },
       mappings = {
         edit = "e",
-        expand = { "<CR>", "<2-LeftMouse>" },
+        expand = { "o", "<2-LeftMouse>" },
         open = "<CR>", -- jump to a breakpoint
         remove = "d",
         repl = "r",

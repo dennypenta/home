@@ -60,7 +60,7 @@ return {
 	},
 
 	-- theme
-	-- window_background_opacity = 0.88,
+	window_background_opacity = 0.88,
 	font = wezterm.font_with_fallback({
 		{ family = "Hack Nerd Font Mono", weight = "Regular", italic = false },
 		{ family = "Hack Nerd Font Mono", weight = "Bold", italic = false },
