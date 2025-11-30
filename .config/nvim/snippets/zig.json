@@ -1,0 +1,28 @@
+{
+    "Import": {
+        "prefix": "import",
+        "body": ["const ${1} = @import(\"${1}\");"],
+        "description": "Importing Libraries"
+    },
+    "CImport": {
+        "prefix": "cimport",
+        "body": ["const c = @cImport({", "    @cInclude(\"${1}\");", "});"],
+        "description": "Importing C Header Files"
+    },
+    "structPointer": {
+        "prefix": "sp",
+        "body": [
+            "pub const ${1:StructName} = struct {",
+            "    ${2}",
+            "    pub fn init(allocator: std.mem.Allocator) !*${1:StructName} {",
+            "        const s = try allocator.create(${1:StructName});",
+            "        s.* = ${1:StructName}{",
+            "            ${2}",
+            "        };",
+            "        return s;",
+            "    }",
+            "};"
+        ],
+        "description": "Struct with init pointer"
+    },
+}
