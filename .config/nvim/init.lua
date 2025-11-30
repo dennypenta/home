@@ -29,12 +29,12 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Setup lazy.nvim
+local specs = {
+  { import = "plugins" },
+  { import = "plugins.langs" },
+}
 require("lazy").setup({
-  spec = {
-    -- import your plugins
-    { import = "plugins" },
-    { import = "plugins.langs" },
-  },
+  spec = specs,
   change_detection = {
     notify = false,
   },
