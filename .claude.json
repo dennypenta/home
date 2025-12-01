@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "serena": {
+            "type": "stdio",
+            "command": "serena",
+            "args": [
+                "start-mcp-server",
+                "--context",
+                "ide-assistant",
+                "--project",
+                "project path"
+            ],
+            "env": {}
+        }
+    }
+}

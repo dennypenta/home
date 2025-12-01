@@ -97,3 +97,46 @@ power10k + power10k prompt config and a couple clis like bat, eza, fzf
 Everything uncommented must be interpreted as is, the rest info might be given from the comments and there are no many of them.
 Feel free to use, not very fancy.
 
+
+### Claude 
+
+My basic skills and agents setup.
+
+#### lsp mcps to consider 
+
+        "zls": {
+          "type": "stdio",
+          "command": "mcp-language-server",
+          "args": [
+            "--workspace",
+            "project dir",
+            "--lsp",
+            "zls"
+          ],
+          "env": {}
+        },
+        "cclsp": {
+          "type": "stdio",
+          "command": "npx",
+          "args": [
+            "cclsp@latest"
+          ],
+          "env": {
+            "CCLSP_CONFIG_PATH": "path to cclsp.json"
+          }
+        },
+// -- cclsp.json example ---
+{
+    "servers": [
+        {
+            "extensions": [
+                "zig"
+            ],
+            "command": [
+                "zls"
+            ],
+            "rootDir": "."
+        }
+    ]
+}
+

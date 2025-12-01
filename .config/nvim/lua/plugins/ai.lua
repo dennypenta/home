@@ -5,13 +5,11 @@ if root and not string.find(root, "projects/96") then
   loadGithubCopilot = true
 end
 
-local loadGithubCopilot = false
-
 return {
   {
     "github/copilot.vim",
     pin = true,
-    enable = loadGithubCopilot,
+    enabled = loadGithubCopilot,
   },
   {
     "folke/sidekick.nvim",
