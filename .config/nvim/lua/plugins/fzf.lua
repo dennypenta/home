@@ -181,12 +181,21 @@ return {
     {
       "<leader>uC",
       function()
-        require("fzf-lua").colorschemes({
-          -- colors = { "retrobox", "habamax", "kanagawa-dragon", "delek" },
-          colors = { "kanagawa", "modus" },
-        })
+        require("fzf-lua").colorschemes({})
       end,
       desc = "Fzf colorscheme",
+    },
+    {
+      "<leader>fa",
+      function()
+        require("fzf-lua").live_grep({
+          cmd = "sg --heading never --pattern",
+          toggle_hidden_flag = "--no-ignore=hidden",
+          hidden = true,
+          file_ignore_patterns = ignore_pattern,
+        })
+      end,
+      desc = "Fzf ast-grep",
     },
     {
       "<leader>ho",

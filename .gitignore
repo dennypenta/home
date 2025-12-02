@@ -6,5 +6,6 @@ __debug_bin
 *.env*.local
 .mirrord/
 .run/
-
+**/__pycache__/
 .config/nvim/undodir/
+
