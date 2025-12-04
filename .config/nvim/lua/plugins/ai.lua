@@ -3,13 +3,19 @@ local root = vim.fs.root(0, { ".git" })
 if root and not string.find(root, "projects/96") then
   vim.notify("github copilot loaded", vim.log.levels.INFO)
   loadGithubCopilot = true
+else
+  vim.notify("github copilot not loaded", vim.log.levels.INFO)
 end
+loadGithubCopilot = false
+
+local lastProvider = "claude"
 
 return {
   {
     "github/copilot.vim",
     pin = true,
     enabled = loadGithubCopilot,
+    event = "VeryLazy",
   },
   {
     "folke/sidekick.nvim",
@@ -31,16 +37,6 @@ return {
       },
       picker = "fzf-lua",
       prompts = {
-        changes = "review the last changes according to git diff main",
-        diagnostics = "There are compile errors in {file}, fix them: {diagnostics}",
-        document = "Add documentation to {function}",
-        explain = "Explain {this}",
-        fix = "fix {this}",
-        optimize = "How can {this} be optimized?",
-        review = "Can you review {file} for any issues or improvements?",
-        test = "I implemented a test for {this}, implement what it defines as expectation and do not change the test",
-        test_fix = "There are failing tests in {file}, fix them",
-        -----------------------
         buffers = "{buffers}",
         file = "{file}",
         line = "{line}",
@@ -65,14 +61,14 @@ return {
       {
         "<leader>af",
         function()
-          require("sidekick.cli").send({ msg = "{file}" })
+          require("sidekick.cli").send({ name = lastProvider, msg = "{file}" })
         end,
         desc = "Send File",
       },
       {
         "<leader>av",
         function()
-          require("sidekick.cli").send({ msg = "{selection}" })
+          require("sidekick.cli").send({ name = lastProvider, msg = "{selection}" })
         end,
         mode = { "x" },
         desc = "Send Visual Selection",
@@ -80,13 +76,14 @@ return {
       {
         "<c-.>",
         function()
-          require("sidekick.cli").toggle({ focus = true })
+          require("sidekick.cli").toggle({ name = lastProvider, focus = true })
         end,
         desc = "Sidekick Toggle",
       },
       {
         "<leader>ac",
         function()
+          lastProvider = "claude"
           require("sidekick.cli").toggle({ name = "claude", focus = true })
         end,
         desc = "Sidekick Toggle Claude",
@@ -94,6 +91,7 @@ return {
       {
         "<leader>ah",
         function()
+          lastProvider = "copilot"
           require("sidekick.cli").toggle({ name = "copilot", focus = true })
         end,
         desc = "Sidekick Toggle Copilot",
@@ -101,17 +99,10 @@ return {
       {
         "<leader>ag",
         function()
+          lastProvider = "gemini"
           require("sidekick.cli").toggle({ name = "gemini", focus = true })
         end,
         desc = "Sidekick Toggle Gemini",
-      },
-      {
-        "<leader>ap",
-        function()
-          require("sidekick.cli").prompt()
-        end,
-        mode = { "n", "x" },
-        desc = "Sidekick Select Prompt",
       },
     },
   },

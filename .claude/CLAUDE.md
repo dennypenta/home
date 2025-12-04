@@ -1,9 +1,5 @@
 ## Agents orchestrator
 
-Explorer agent must use documentation discovery CLIs:
-  * `zigdoc` for zig 
-  * `go doc` for go 
-
 ## Tooling for shell interactions 
 Is it about finding FILES? use 'fd' 
 Is it about finding TEXT/strings? use 'rg' 

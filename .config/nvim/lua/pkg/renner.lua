@@ -196,6 +196,33 @@ function M.watch(task)
   end
 
   local start_line = 0
+  local prev_items = nil
+
+  local function items_equal(items1, items2)
+    if not items1 and not items2 then
+      return true
+    end
+    if not items1 or not items2 then
+      return false
+    end
+    if #items1 ~= #items2 then
+      return false
+    end
+
+    for i, item1 in ipairs(items1) do
+      local item2 = items2[i]
+      if
+        item1.filename ~= item2.filename
+        or item1.lnum ~= item2.lnum
+        or item1.col ~= item2.col
+        or item1.text ~= item2.text
+      then
+        return false
+      end
+    end
+    return true
+  end
+
   vim.api.nvim_buf_attach(compile.term.state.buf, false, {
     on_lines = function(_, _, _, first_changed, _, last_changed)
       local lines = vim.api.nvim_buf_get_lines(compile.term.state.buf, start_line, -1, false)
@@ -205,14 +232,23 @@ function M.watch(task)
         if output and output.lines then
           start_line = output.start_line
           local filtered_lines, _ = filter(output.lines)
+
           if #filtered_lines > 0 then
             local items = linesToItems(filtered_lines)
-            toQf(items)
-            -- toDiagnostic(items)
+
+            -- Only update quickfix if items have changed
+            if not items_equal(items, prev_items) then
+              toQf(items)
+              prev_items = items
+              -- toDiagnostic(items)
+            end
           else
-            -- Clear diagnostics and qf if no errors
-            vim.diagnostic.reset(ns)
-            vim.fn.setqflist({}, "r", { title = "build", items = {} })
+            -- Only clear if we previously had items
+            if prev_items ~= nil then
+              vim.diagnostic.reset(ns)
+              vim.fn.setqflist({}, "r", { title = "build", items = {} })
+              prev_items = nil
+            end
           end
         end
       end)

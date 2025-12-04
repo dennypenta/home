@@ -1,11 +1,22 @@
+# vscode
 .vscode
+# temporary files
 t/
 t.go
+# debug bin
 __debug_bin
+# macos shit
 .DS_Store
+# environment files
 *.env*.local
+# mirrord config
 .mirrord/
+# intelij idea
 .run/
+# python cache
 **/__pycache__/
+# nvim undo
 .config/nvim/undodir/
+# ast grep config
+sgconfig.yaml
 

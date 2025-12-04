@@ -21,6 +21,13 @@ vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd> w <CR>", { noremap = true
 vim.keymap.set("n", "<C-q>", "<cmd> q <CR>", { noremap = true, silent = true, desc = "Quit file" })
 -- quit
 vim.keymap.set("n", "<leader>qq", function()
+  -- Kill all terminal buffers before quitting
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(bufnr) and vim.bo[bufnr].buftype == "terminal" then
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+  end
+  -- Quit all buffers
   vim.cmd("wqa")
 end, { noremap = true, silent = true, desc = "Quit all files" })
 
