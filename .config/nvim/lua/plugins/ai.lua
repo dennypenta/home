@@ -6,7 +6,6 @@ if root and not string.find(root, "projects/96") then
 else
   vim.notify("github copilot not loaded", vim.log.levels.INFO)
 end
-loadGithubCopilot = false
 
 local lastProvider = "claude"
 
