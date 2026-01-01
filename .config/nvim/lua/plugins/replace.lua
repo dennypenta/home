@@ -18,7 +18,7 @@ return {
         })
       end,
       mode = { "n", "v" },
-      desc = "Search and Replace",
+      desc = "Search and Replace (Extension)",
     },
     {
       "<leader>sr",
@@ -45,7 +45,7 @@ return {
         })
       end,
       mode = { "n", "v" },
-      desc = "Search and Replace Word",
+      desc = "Search and Replace current Word",
     },
     {
       "<leader>sg",
@@ -59,7 +59,7 @@ return {
         })
       end,
       mode = { "n", "v" },
-      desc = "Search and Replace",
+      desc = "Search and Replace AST grep",
     },
     {
       "<leader>sv",

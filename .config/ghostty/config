@@ -1,0 +1,71 @@
+background-opacity = 0.85
+theme = Kanagawa Dragon
+font-feature = -calt, -liga, -dlig
+
+# Make Option key send Alt sequences instead of composed characters
+macos-option-as-alt = true
+
+cursor-style = block
+shell-integration-features = no-cursor
+
+unfocused-split-fill = #080208
+split-divider-color = #424212
+
+window-inherit-working-directory = true
+window-new-tab-position = current
+window-show-tab-bar = always
+quit-after-last-window-closed = true
+
+quick-terminal-position = center
+quick-terminal-size = 50%,50%
+
+shell-integration = zsh
+auto-update = off
+
+# quick project
+# seq
+keybind = super+r>1=text:cd ~/projects/seqor\rvi\r
+# home
+keybind = super+r>2=text:cd ~/projects/home\rvi\r
+# 96
+keybind = super+r>3=text:cd ~/projects/96/gcc-ov-services\rvi\r
+
+# reload
+keybind = super+r>r=reload_config
+
+# splits
+# new split right
+keybind = super+r>v=new_split:right
+# new split bottom
+keybind = super+r>s=new_split:down
+# go to split
+keybind = super+r>h=goto_split:left
+keybind = super+r>l=goto_split:right
+keybind = super+r>j=goto_split:down
+keybind = super+r>k=goto_split:up
+# resize splits
+keybind = super+r>-=resize_split:left,48
+keybind = super+r>==resize_split:right,48
+keybind = super+r>9=resize_split:down,48
+keybind = super+r>0=resize_split:up,48
+# close
+keybind = super+r>w=close_surface
+
+# go right
+keybind = super+r>]=next_tab
+# go left
+keybind = super+r>[=previous_tab
+# move right
+keybind = super+r>.=move_tab:1
+# move left
+keybind = super+r>,=move_tab:-1
+
+# quick terminal
+keybind = super+r>t=toggle_quick_terminal
+
+# reset font
+keybind = ctrl+0=reset_font_size
+# scroll to bottom
+keybind = super+r>b=scroll_to_bottom
+
+keybind = shift+enter=text:\x1b\r

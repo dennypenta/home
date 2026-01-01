@@ -1,0 +1,146 @@
+# layouts - Ordered list of layouts to use by layout key (default tall, wide, fullscreen, and column).
+layouts:
+  - tall
+  - fullscreen
+
+# First mod (default option + shift).
+mod1:
+  - option
+  # - shift
+  # - control
+  # - command
+
+# Second mod (default option + shift + control).
+mod2:
+  - option
+  - command
+  # - shift
+  # - control
+
+# Commands:
+# special key values
+# space
+# enter
+# up
+# right
+# down
+# left
+
+# special characters require quotes
+# '.'
+# ','
+
+# Move to the next layout in the list.
+cycle-layout:
+  mod: mod1
+  key: space
+
+# Shrink the main pane by a percentage of the screen dimension as defined by window-resize-step. Note that not all layouts respond to this command.
+shrink-main:
+  mod: mod1
+  key: h
+
+# Expand the main pane by a percentage of the screen dimension as defined by window-resize-step. Note that not all layouts respond to this command.
+expand-main:
+  mod: mod1
+  key: l
+
+# Increase the number of windows in the main pane. Note that not all layouts respond to this command.
+increase-main:
+  mod: mod1
+  key: ','
+
+# Decrease the number of windows in the main pane. Note that not all layouts respond to this command.
+decrease-main:
+  mod: mod1
+  key: '.'
+
+# Focus the next window in the list going counter-clockwise.
+focus-ccw:
+  mod: mod1
+  key: u
+
+# Focus the next window in the list going clockwise.
+focus-cw:
+  mod: mod1
+  key: i
+
+# Focus the main window in the list.
+focus-main:
+  mod: mod1
+  key: m
+
+# Focus the next screen in the list going counter-clockwise.
+focus-screen-ccw:
+  mod: mod1
+  key: p
+
+# Focus the next screen in the list going clockwise.
+focus-screen-cw:
+  mod: mod1
+  key: n
+
+# Move the currently focused window onto the next screen in the list going counter-clockwise.
+swap-screen-ccw:
+  mod: mod2
+  key: h
+
+# Move the currently focused window onto the next screen in the list going clockwise.
+swap-screen-cw:
+  mod: mod2
+  key: l
+
+# Swap the position of the currently focused window with the next window in the list going counter-clockwise.
+swap-ccw:
+  mod: mod2
+  key: j
+
+# Swap the position of the currently focused window with the next window in the list going clockwise.
+swap-cw:
+  mod: mod2
+  key: k
+
+# Swap the position of the currently focused window with the main window in the list.
+swap-main:
+  mod: mod1
+  key: enter
+
+# Move focus to the n-th screen in the list; e.g., focus-screen-3 will move mouse focus to the 3rd screen. Note that the main window in the given screen will be focused.
+#focus-screen-n:
+# focus-screen-<screen-number>:
+#   mod: mod1
+#   key: y
+# Move the currently focused window to the n-th screen; e.g., throw-screen-3 will move the window to the 3rd screen.
+# throw-screen-n:
+# throw-screen-<screen-number>:
+#   mod: mod1
+#   key: u
+# Move the currently focused window to the n-th space; e.g., throw-space-3 will move the window to the 3rd space.
+# throw-space-<screen-number>:
+#   mod: mod1
+#   key: i
+throw-space-1:
+  mod: mod2
+  key: 1
+throw-space-2:
+  mod: mod2
+  key: 2
+throw-space-3:
+  mod: mod2
+  key: 3
+throw-space-4:
+  mod: mod2
+  key: 4
+throw-space-5:
+  mod: mod2
+  key: 5
+
+# true to display the name of the layout when moving to a new space (default true).
+enables-layout-hud-on-space-change: false
+
+# The integer percentage of the screen dimension to increment and decrement main pane ratios by (default 5).
+window-resize-step: 10
+
+# true to maintain layout state across application executions (default true).
+restore-layouts-on-launch: true
+

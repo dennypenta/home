@@ -11,8 +11,8 @@ return {
     require("persistence").setup(opts)
     vim.schedule(function()
       local Argv = require("pkg.argv")
-      -- when a file is not specified, just "nvim", then start the session for the project respecting git directory
-      if not Argv.is_file() then
+
+      if Argv.canStartSession() then
         if vim.bo.ft == 'lazy' then
           vim.cmd.quit()
         end
@@ -24,6 +24,7 @@ return {
     end)
   end,
   keys = {
+    { "<leader>s", group = "Session" },
     { "<leader>ol", function() require("persistence").load() end,           desc = "Restore Session" },
     { "<leader>os", function() require("persistence").select() end,         desc = "Select Session" },
     { "<leader>oS", function() require("persistence").save() end,           desc = "Save Session" },

@@ -106,7 +106,12 @@ function M.set_autocmds()
     group = group_id,
     pattern = "*",
     callback = function()
-      api.nvim_set_hl(0, "CursorWord", { fg = "#C5C9C5", bold = true, default = true })
+      if vim.o.background == "dark" then
+        -- TODO: move to all the colors
+        api.nvim_set_hl(0, "CursorWord", { fg = "#C5C9C5", bold = true, default = true })
+      else
+        api.nvim_set_hl(0, "CursorWord", { fg = "#151915", bold = true, default = true })
+      end
     end,
   })
 end

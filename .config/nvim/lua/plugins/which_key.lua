@@ -22,7 +22,6 @@ return {
         { "<leader>f", group = "file/find" },
         { "gr", group = "LSP" },
         { "<leader>q", group = "Quit" },
-        { "<leader>s", group = "Session" },
         { "<leader>j", group = "JSON" },
         { "<leader>l", group = "Lazy" },
         { "<leader>u", group = "UI", icon = { icon = "󰙵 ", color = "cyan" } },

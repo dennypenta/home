@@ -3,6 +3,7 @@
 # temporary files
 t/
 t.go
+t.zig
 # debug bin
 __debug_bin
 # macos shit
