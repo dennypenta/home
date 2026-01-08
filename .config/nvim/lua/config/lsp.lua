@@ -2,6 +2,7 @@ vim.lsp.enable({
   "lua_ls",
   "gopls",
   "zls",
+  "vtsls",
   -- TODO: enable linked editing range for web
 })
 

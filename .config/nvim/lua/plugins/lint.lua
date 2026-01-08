@@ -134,7 +134,8 @@ return {
     local lint = require("lint")
     lint.linters_by_ft = {
       go = { "golangcilint" },
-      zig = { "zlint", "zig" },
+      zig = { "zlint" },
+      ts = { "eslint" },
     }
 
     lint.linters.golangci_root = make_golangcilint_root(lint.linters.golangcilint)

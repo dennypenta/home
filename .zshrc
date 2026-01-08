@@ -204,3 +204,10 @@ export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
 
 # wezterm
 export WEZTERM_CONFIG_FILE=$HOME/.config/wezterm/wezterm.lua
+
+# bun completions
+[ -s "/Users/d.dvornikov/.bun/_bun" ] && source "/Users/d.dvornikov/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

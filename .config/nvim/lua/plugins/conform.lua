@@ -1,5 +1,5 @@
 return {
-  'stevearc/conform.nvim',
+  "stevearc/conform.nvim",
   pin = true,
   event = { "BufWritePre" },
   cmd = { "ConformInfo" },
@@ -8,6 +8,7 @@ return {
       formatters_by_ft = {
         lua = { "stylua" },
         go = { "goimports", "gofmt" },
+        javascript = { "prettier" },
       },
       format_on_save = {
         lsp_format = "fallback",
