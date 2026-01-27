@@ -9,6 +9,8 @@ return {
         lua = { "stylua" },
         go = { "goimports", "gofmt" },
         javascript = { "prettier" },
+        typescript = { "prettier" },
+        json = { "prettier" },
       },
       format_on_save = {
         lsp_format = "fallback",

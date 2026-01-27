@@ -135,7 +135,8 @@ return {
     lint.linters_by_ft = {
       go = { "golangcilint" },
       zig = { "zlint" },
-      ts = { "eslint" },
+      typescript = { "eslint" },
+      javascript = { "eslint" },
     }
 
     lint.linters.golangci_root = make_golangcilint_root(lint.linters.golangcilint)

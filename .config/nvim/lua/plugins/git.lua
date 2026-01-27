@@ -1,3 +1,5 @@
+local gitsource = require("pkg.gitsource")
+
 local function gitBlame()
   local gitsigns = require("gitsigns")
 
@@ -104,6 +106,11 @@ return {
       "<leader>gd",
       gitDiff,
       desc = "Git Diff",
+    },
+    {
+      "<leader>gy",
+      gitsource.copy_github_link,
+      desc = "Copy link to github",
     },
   },
 }

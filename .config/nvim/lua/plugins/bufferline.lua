@@ -76,5 +76,19 @@ return {
       end,
       desc = "Delete others buffers",
     },
+    {
+      "<leader>bl",
+      function()
+        vim.cmd("BufferLineCloseRight")
+      end,
+      desc = "Delete buffers right",
+    },
+    {
+      "<leader>bh",
+      function()
+        vim.cmd("BufferLineCloseLeft")
+      end,
+      desc = "Delete buffers left",
+    },
   },
 }

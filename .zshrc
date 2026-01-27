@@ -1,7 +1,20 @@
+# OPENSPEC:START
+# OpenSpec shell completions configuration
+fpath=("/Users/d.dvornikov/.oh-my-zsh/custom/completions" $fpath)
+autoload -Uz compinit
+compinit
+# OPENSPEC:END
+
+# basic
 export PATH=$HOME/bin:/usr/local/bin:$PATH
+# go
 export GOBIN=~/go/bin
+# python
 export PATH=~/Library/Python/3.9/bin:$GOBIN:$PATH
+# rust
 export PATH=/Users/denis/.cargo/bin:$PATH
+# node
+export PATH=~/.npm/bin/:$PATH
 export GOPRIVATE=github.com/digitalocean/*
 export DOCKER_BUILDKIT=1
 export EDITOR='nvim'
