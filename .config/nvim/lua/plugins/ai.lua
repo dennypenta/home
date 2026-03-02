@@ -13,8 +13,19 @@ return {
   {
     "github/copilot.vim",
     pin = true,
+    enabled = false,
+    event = "VeryLazy",
+  },
+  {
+    "Exafunction/windsurf.vim",
+    pin = true,
     enabled = loadGithubCopilot,
     event = "VeryLazy",
+    config = function()
+      vim.keymap.set("i", "<tab>", function()
+        return vim.fn["codeium#Accept"]()
+      end, { expr = true, silent = true })
+    end,
   },
   {
     "folke/sidekick.nvim",
