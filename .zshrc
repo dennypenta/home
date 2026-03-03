@@ -157,6 +157,7 @@ alias vi='nvim'
 alias gfrm="git fetch --all && git rebase origin/main  git rebase origin/master"
 alias gfrd="git fetch --all && git rebase origin/develop"
 alias cpf="copyfile"
+alias brew="zb"
 alias zshrc="${=EDITOR} ~/.zshrc"
 
 # starship load
