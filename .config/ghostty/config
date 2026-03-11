@@ -48,6 +48,12 @@ keybind = super+r>-=resize_split:left,48
 keybind = super+r>==resize_split:right,48
 keybind = super+r>9=resize_split:down,48
 keybind = super+r>0=resize_split:up,48
+# large resize
+keybind = super+r>_=resize_split:left,192
+keybind = super+r>+=resize_split:right,192
+keybind = super+r>(=resize_split:down,192
+keybind = super+r>)=resize_split:up,192
+
 # close
 keybind = super+r>w=close_surface
 
