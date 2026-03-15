@@ -7,6 +7,7 @@ require("config.ft")
 require("config.lsp")
 require("config.diagnostic")
 require("pkg.cursorword").set_autocmds()
+require("pkg.statuscolumn")
 
 local Root = require("pkg.root")
 Root.to_root()
