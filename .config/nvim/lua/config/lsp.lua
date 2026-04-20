@@ -34,9 +34,9 @@ local function place_codelens_signs(lenses, bufnr)
 end
 
 local function enable(client, bufnr)
-  if client:supports_method("textDocument/inlayHint") then
-    vim.lsp.inlay_hint.enable(true, { bufnr })
-  end
+  -- if client:supports_method("textDocument/inlayHint") then
+  --   vim.lsp.inlay_hint.enable(true, { bufnr })
+  -- end
 
   -- update code lens
   if client:supports_method("textDocument/codeLens") then
