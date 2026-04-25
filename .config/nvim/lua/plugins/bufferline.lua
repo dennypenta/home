@@ -90,5 +90,12 @@ return {
       end,
       desc = "Delete buffers left",
     },
+    {
+      "<leader>bb",
+      function()
+        vim.cmd("b #")
+      end,
+      desc = "Previous buffer",
+    },
   },
 }
