@@ -4,3 +4,9 @@ vim.filetype.add({
     ["%.env%.[%w_.-]+"] = "sh",
   },
 })
+
+vim.filetype.add({
+  extension = {
+    mdx = "markdown",
+  },
+})
