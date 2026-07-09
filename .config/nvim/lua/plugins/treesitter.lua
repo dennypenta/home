@@ -68,6 +68,7 @@ return {
         "svelte",
         "cpp",
         "rust",
+        "ron",
         "zig",
       },
       highlight = { enable = true },
