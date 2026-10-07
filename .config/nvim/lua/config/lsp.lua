@@ -4,6 +4,7 @@ vim.lsp.enable({
   "zls",
   "vtsls",
   "rust_analyzer",
+  "clangd",
   -- TODO: enable linked editing range for web
 })
 
