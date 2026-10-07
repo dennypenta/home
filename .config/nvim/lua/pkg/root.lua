@@ -10,6 +10,8 @@ local module_markers = {
   "package.json",
   -- zig
   "build.zig",
+  -- rust
+  "Cargo.toml",
   -- fallback
   ".git",
 }
