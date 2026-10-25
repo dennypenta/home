@@ -1,0 +1,17 @@
+{
+  "lastChangelogVersion": "1.4.0",
+  "defaultProvider": "openai",
+  "defaultModel": "gpt-6.1-sol",
+  "autocompleteMaxVisible": 3,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "hideThinkingBlock": true,
+  "cacheWarming": "streaming",
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "enableInstallTelemetry": false,
+  "defaultProjectTrust": "ask",
+  "tuiMode": "fullscreen",
+}

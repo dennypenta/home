@@ -1,0 +1,9 @@
+---
+description: Review a patch using git show (default) or a supplied shell command
+argument-hint: "[command]"
+---
+Review the patch !!(${@:-git show}).
+Make sure the changes are covered with unit tests well.
+
+If you find a bug - implement a unit test to confirm first.
+

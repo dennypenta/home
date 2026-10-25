@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "paper": {
+      "command": "/Users/d.dvornikov/.paper/bin/paper",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}
