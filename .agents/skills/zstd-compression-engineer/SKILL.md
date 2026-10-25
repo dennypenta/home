@@ -1,6 +1,7 @@
 ---
 name: zstd-compression-engineer
-description: Expert guide for implementing Zstandard (zstd) compression and decompression. Use when working with zstd library for data compression tasks including simple compression, streaming operations, dictionary-based compression, or when users need help with compression performance optimization, error handling, or choosing the right API for their use case.
+disable-model-invocation: true
+description: Expert guide for implementing Zstandard (zstd) compression and decompression.
 ---
 
 # Zstd Compression Engineer
@@ -139,17 +140,6 @@ ZSTD_CCtx_refThreadPool(cctx, pool);
 - Strategy: fast, dfast, greedy, lazy, btopt (automatic selection usually best)
 - See `references/api-reference.md` for complete parameter list
 
-## Language-Specific Notes
-
-**C/C++:** Direct library access, use patterns above
-**Python:** Use `zstandard` package (python-zstandard)
-**Node.js:** Use `@mongodb-js/zstd` or `node-zstd`
-**Go:** Use `github.com/klauspost/compress/zstd`
-**Rust:** Use `zstd` crate
-**Java:** Use `com.github.luben:zstd-jni`
-
-All language bindings follow the same conceptual patterns: simple compression, streaming, dictionary support.
-
 ## Reference Documentation
 
 For detailed API specifications:
@@ -158,14 +148,3 @@ For detailed API specifications:
 - **Complete API reference**: `references/api-reference.md`
 - **Official docs**: https://facebook.github.io/zstd/doc/api_manual_latest.html
 
-## Implementation Checklist
-
-When implementing zstd compression:
-- [ ] Choose correct API (simple/streaming/dictionary)
-- [ ] Calculate buffer sizes with `ZSTD_compressBound()`
-- [ ] Select appropriate compression level
-- [ ] Implement error checking with `ZSTD_isError()`
-- [ ] Reuse contexts for multiple operations
-- [ ] Handle context reset after errors
-- [ ] Validate untrusted data sizes
-- [ ] Test with actual data to verify correctness
