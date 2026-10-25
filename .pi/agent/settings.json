@@ -3,6 +3,7 @@
   "defaultProvider": "openai",
   "defaultModel": "gpt-6.1-sol",
   "autocompleteMaxVisible": 3,
+  "extensions": ["-builtin:mcp"],
   "terminal": {
     "showTerminalProgress": true
   },

@@ -17,6 +17,20 @@ servers and hidden tools. It does not add a message to the model's context.
 ## Load
 
 This directory is auto-discovered when installed under `~/.pi/agent/extensions/`.
+Disable the duplicate built-in extension in `~/.pi/agent/settings.json` (merge
+this entry into an existing `extensions` list if present):
+
+```json
+{
+  "extensions": ["-builtin:mcp"]
+}
+```
+
+This extension loads the installed MCP implementation itself. Explicitly disabling
+its automatic built-in copy prevents the `/mcp` replacement warning; it does not
+disable this extension or its connections. If you remove this extension later,
+remove `-builtin:mcp` as well to restore normal built-in MCP loading.
+
 Run `/reload` in an existing Pi session to load it. For a one-off installation:
 
 ```sh
