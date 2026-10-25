@@ -24,10 +24,11 @@ export function notificationSequence(
   const safeBody = sanitizeText(body);
   let sequences: string[];
   if (env.KITTY_WINDOW_ID) {
-    // Disable activation callbacks (a=0) and send the body as the final part.
+    // OSC 99 actions use names, not numeric flags. Disable focus and reports,
+    // and send the body as the final part.
     sequences = [
-      `${ESC}]99;i=pi-complete:d=0:a=0;${safeTitle}${ST}`,
-      `${ESC}]99;i=pi-complete:p=body:d=1:a=0;${safeBody}${ST}`,
+      `${ESC}]99;i=pi-complete:d=0:a=-focus,-report;${safeTitle}${ST}`,
+      `${ESC}]99;i=pi-complete:p=body:d=1:a=-focus,-report;${safeBody}${ST}`,
     ];
   } else if (env.TERM_PROGRAM === "iTerm.app" || env.ITERM_SESSION_ID) {
     sequences = [`${ESC}]9;${safeTitle}: ${safeBody}\x07`];
