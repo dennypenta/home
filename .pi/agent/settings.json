@@ -14,5 +14,5 @@
   },
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "ask",
-  "tuiMode": "fullscreen",
+  "tuiMode": "fullscreen"
 }
