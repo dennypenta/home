@@ -8,6 +8,7 @@ paths=(
   .pi/agent/extensions
   .pi/agent/prompts
   .pi/agent/mcp.json
+  .pi/agent/AGENTS.md
   .pi/agent/settings.json
   .zshrc
   .skhdrc
