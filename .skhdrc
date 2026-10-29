@@ -2,5 +2,5 @@ alt - b : open -a 'google chrome'
 alt - v : open -a 'ghostty'
 alt - y : open -a 'spotify'
 alt - f : open -a 'finder'
-alt - s : open -a 'slack'
+alt - w : open -a 'slack'
 

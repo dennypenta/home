@@ -1,4 +1,41 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { AutocompleteProvider } from "@earendil-works/pi-tui";
+
+export function createModelAutocompleteProvider(
+  current: AutocompleteProvider,
+  getModels: () => readonly { provider: string; id: string }[],
+): AutocompleteProvider {
+  return {
+    triggerCharacters: current.triggerCharacters,
+    async getSuggestions(lines, cursorLine, cursorCol, options) {
+      const match = lines[cursorLine]?.slice(0, cursorCol).match(/^#model[\t ]+(\S*)$/);
+      if (!match) return current.getSuggestions(lines, cursorLine, cursorCol, options);
+
+      const prefix = match[1];
+      const query = prefix.toLowerCase();
+      const items = getModels()
+        .map((model) => `${model.provider}/${model.id}`)
+        .filter((value) => value.toLowerCase().includes(query))
+        .sort()
+        .map((value) => ({ value, label: value }));
+      return items.length ? { items, prefix } : null;
+    },
+    applyCompletion(lines, cursorLine, cursorCol, item, prefix) {
+      if (!/^#model[\t ]+\S*$/.test(lines[cursorLine]?.slice(0, cursorCol) ?? "")) {
+        return current.applyCompletion(lines, cursorLine, cursorCol, item, prefix);
+      }
+      const updated = [...lines];
+      const start = cursorCol - prefix.length;
+      // Replace the whole model token when completing with the cursor inside it.
+      const suffix = lines[cursorLine].slice(cursorCol).replace(/^\S*/, "");
+      updated[cursorLine] = lines[cursorLine].slice(0, start) + item.value + suffix;
+      return { lines: updated, cursorLine, cursorCol: start + item.value.length };
+    },
+    shouldTriggerFileCompletion(lines, cursorLine, cursorCol) {
+      return current.shouldTriggerFileCompletion?.(lines, cursorLine, cursorCol) ?? true;
+    },
+  };
+}
 
 export function parseFooter(text: string) {
   const lines = text.split("\n");
@@ -26,6 +63,13 @@ export function parseFooter(text: string) {
 }
 
 export default function (pi: ExtensionAPI) {
+  pi.on("session_start", (_event, ctx) => {
+    if (ctx.mode !== "tui") return;
+    ctx.ui.addAutocompleteProvider((current) =>
+      createModelAutocompleteProvider(current, () => ctx.modelRegistry.getAvailable()),
+    );
+  });
+
   pi.on("input", async (event, ctx) => {
     if (event.source === "extension") return { action: "continue" };
 

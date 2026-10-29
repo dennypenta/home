@@ -23,6 +23,15 @@ do something
 #model openai/gpt-tera-6
 ```
 
+## Autocomplete
+
+In the interactive editor, start a line with `#model ` and press **Tab** to
+suggest available models. Type part of a model ID or `provider/model-id` to
+filter the list (case-insensitive). Completions insert provider-qualified IDs
+so models offered by multiple providers are unambiguous. The list uses the
+same credential-filtered registry as model switching; other editor completions
+remain unchanged.
+
 ## Behavior
 
 - Supports `#model <model-id>` and `#model <provider/model-id>` (exact matches).
@@ -48,5 +57,5 @@ while Pi is busy; it is not a per-queued-message model override.
 From the repository root (Node.js with TypeScript type stripping):
 
 ```sh
-node --test .pi/agent/extensions/footer-interpolation/test/footer.test.mjs
+node --test .pi/agent/extensions/footer-interpolation/test/*.test.mjs
 ```

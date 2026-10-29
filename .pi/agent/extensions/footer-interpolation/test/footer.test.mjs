@@ -10,8 +10,7 @@ function setup({ models = [model], availableModels = models, setModel = async ()
   const errors = [];
   footerInterpolation({
     on(name, callback) {
-      assert.equal(name, "input");
-      handler = callback;
+      if (name === "input") handler = callback;
     },
     async setModel(value) {
       switches.push(value);
