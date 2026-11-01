@@ -115,6 +115,29 @@ self.garbage.appendAssumeCapacity(buf);
 // BAD
 try self.garbage.append(alloc, buf);
 ```
+### Allocator.create
+
+If an object is destroyed in the same scope there is no benefit to create it via allocator:
+```zig
+// GOOD
+fn init() Object {
+    return .{
+        ...
+    };
+}
+
+const obj = Object.init();
+// BAD
+fn init(alloc: Allocator) !Object {
+    const self = try alloc.create(SkewedMergeFixture);
+    errdefer alloc.destroy(self);
+    ...
+    return self;
+}
+
+var obj = try Object.init(alloc);
+defer obj.deinit(alloc); // this is the reason
+```
 
 ### Docs
 
