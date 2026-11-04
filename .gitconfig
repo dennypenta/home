@@ -3,9 +3,6 @@
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
-[user]
-	name = Denis
-	email = candyboobers@gmail.com
 [http]
 	cookiefile = /Users/denis/.gitcookies
 [push]
@@ -16,3 +13,5 @@
 	excludesFile = ~/.gitignore
 [url "git@github.com:"]
 	insteadOf = https://github.com
+[user]
+	useConfigOnly = true
