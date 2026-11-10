@@ -1,10 +1,3 @@
-# OPENSPEC:START
-# OpenSpec shell completions configuration
-fpath=("/Users/d.dvornikov/.oh-my-zsh/custom/completions" $fpath)
-autoload -Uz compinit
-compinit
-# OPENSPEC:END
-
 # basic
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 # go
