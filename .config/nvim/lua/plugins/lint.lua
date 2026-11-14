@@ -2,6 +2,24 @@ local root_linters = {
   go = "golangci_root",
 }
 
+local web_filetypes = {
+  javascript = true,
+  javascriptreact = true,
+  typescript = true,
+  typescriptreact = true,
+}
+
+local function try_lint(root)
+  local lint = require("lint")
+  if web_filetypes[vim.bo.filetype] then
+    local node_tool = require("pkg.node_tool")
+    local name, cwd = node_tool.find_linter()
+    lint.try_lint(name, { cwd = cwd })
+  else
+    lint.try_lint(root and root_linters[vim.bo.filetype] or nil)
+  end
+end
+
 function table.copy(t)
   local u = {}
   for k, v in pairs(t) do
@@ -136,7 +154,9 @@ return {
       go = { "golangcilint" },
       zig = { "zlint" },
       typescript = { "eslint" },
+      typescriptreact = { "eslint" },
       javascript = { "eslint" },
+      javascriptreact = { "eslint" },
     }
 
     lint.linters.golangci_root = make_golangcilint_root(lint.linters.golangcilint)
@@ -161,7 +181,7 @@ return {
 
     vim.api.nvim_create_autocmd({ "BufWritePost" }, {
       callback = function()
-        lint.try_lint()
+        try_lint()
       end,
     })
   end,
@@ -170,8 +190,7 @@ return {
       -- TODO: display when it's running: https://github.com/mfussenegger/nvim-lint?tab=readme-ov-file#get-the-current-running-linters-for-your-buffer
       "<leader>cl",
       function()
-        local linter = root_linters[vim.bo.filetype]
-        require("lint").try_lint(linter)
+        try_lint(true)
       end,
       desc = "Lint",
     },

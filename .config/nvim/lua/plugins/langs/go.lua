@@ -5,6 +5,7 @@ return {
     "ray-x/guihua.lua",
     "nvim-treesitter/nvim-treesitter",
   },
+  pin = true,
   config = function()
     require("go").setup({
       tag_options = "",
