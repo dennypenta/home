@@ -1,6 +1,6 @@
 ## Use
 
-Open `/snippets` or press `Alt+S`. Arrows navigate, Space selects, Tab previews, Enter applies. Then send your task normally. Selecting several snippets combines their instructions in menu order: `prepend` snippets go before your text, and `append` snippets go after it. The widget near the editor shows which snippets are armed for the next message.
+The snippet picker opens automatically at interactive session startup (including `/new`, `/resume`, and `/reload`). Non-interactive runs do not open it. Reopen it with `/snippets` or `Alt+S`. Arrows navigate, Space selects, Tab previews, Enter applies. Then send your task normally. Selecting several snippets combines their instructions in menu order: `prepend` snippets go before your text, and `append` snippets go after it. The widget near the editor shows which snippets are armed for the next message.
 
 For example, select **Short** and **Schematic**, press Enter, then send `Explain the login flow`. The model receives:
 

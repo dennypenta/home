@@ -61,7 +61,13 @@ try {
   };
   const menu = () => ext.commands.get('snippets').handler('', ctx);
   const input = text => emit('input', { text, source: 'interactive' });
+  keys = [' ', '\r'];
   await emit('session_start');
+  assert.equal(renders.length > 0, true, 'Interactive startup must open the snippet picker.');
+  assert.deepEqual(await input('Startup task'), {
+    action: 'transform',
+    text: 'Alpha instructions\n\nStartup task',
+  });
   assert.equal(await input('Unmodified'), undefined);
   keys = ['\t', '\x1b', ' ', '\x1b[B', ' ', '\x1b[B', ' ', '\x1b[B', ' ', '\r'];
   await menu();
@@ -81,8 +87,18 @@ try {
   assert.equal(await input('Next task'), undefined);
   keys = [' ', '\r'];
   await ext.shortcuts.get('alt+s').handler(ctx);
+  keys = ['\x1b'];
   await emit('session_start');
   assert.equal(await input('New session'), undefined);
+  ctx.mode = 'rpc';
+  const renderCount = renders.length;
+  await emit('session_start');
+  assert.equal(renders.length, renderCount, 'RPC startup must not open the picker.');
+  assert.deepEqual(notifications, []);
+  ctx.mode = 'tui';
+  ctx.hasUI = false;
+  await emit('session_start');
+  assert.equal(renders.length, renderCount, 'Headless startup must not open the picker.');
   ctx.mode = 'rpc';
   await menu();
   assert.equal(notifications.at(-1), 'Snippet menu requires interactive mode');

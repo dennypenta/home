@@ -136,10 +136,11 @@ export default function promptSnippets(pi: ExtensionAPI) {
 		updateWidget(ctx);
 	};
 
-	pi.on("session_start", (_event, ctx) => {
+	pi.on("session_start", async (_event, ctx) => {
 		selected.clear();
 		refresh();
 		updateWidget(ctx);
+		if (ctx.hasUI && ctx.mode === "tui") await openPicker(ctx);
 	});
 
 	pi.on("input", (event, ctx) => {
