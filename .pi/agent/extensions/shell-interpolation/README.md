@@ -22,10 +22,12 @@ are preserved). Commands run sequentially in the session working directory using
 Pi's shell configuration. Output is not recursively interpolated. Attachments are
 preserved. Extension-injected input is skipped.
 
-Commands have a 30-second timeout. Nonzero exit, cancellation, malformed markers,
-or stdout exceeding 1 MiB stops submission and reports an error. The output limit
-is checked after execution, not a streaming memory limit. Successful stderr is
-not inserted. Commands that already ran are not rolled back if a later one fails.
+Commands have a 30-second timeout. Nonzero exits still interpolate output, with
+stderr appended after stdout (separated by a newline when needed). Cancellation,
+malformed markers, or replacement output exceeding 1 MiB stops submission and
+reports an error. The output limit is checked after execution, not a streaming
+memory limit. Successful stderr is not inserted. Commands that already ran are
+not rolled back if a later one fails.
 
 ## Security and syntax
 
@@ -45,5 +47,5 @@ inside Markdown code fences too. Legacy WSL stdin-based shell transport is unsup
 From `~/.pi/agent`:
 
 ```sh
-node --test extensionw/shell-interpolation/test/core.test.mjs
+node --test extensions/shell-interpolation/test/*.test.mjs
 ```

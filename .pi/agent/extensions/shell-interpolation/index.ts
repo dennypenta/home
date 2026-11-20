@@ -33,13 +33,20 @@ export default function (pi: ExtensionAPI) {
           timeout: 30_000,
           signal: ctx.signal,
         });
-        if (result.killed || result.code !== 0) {
-          throw new Error(`Shell interpolation ${result.killed ? "cancelled or timed out" : `exited with code ${result.code}`}: ${command}\n${result.stderr.trim()}`);
+        if (result.killed) {
+          throw new Error(`Shell interpolation cancelled or timed out: ${command}\n${result.stderr.trim()}`);
         }
-        if (Buffer.byteLength(result.stdout, "utf8") > 1024 * 1024) {
+        // Failed tests often report diagnostics on stderr rather than stdout.
+        let output = result.stdout;
+        if (result.code !== 0 && result.stderr) {
+          output += output && !/[\r\n]$/.test(output) ? "\n" : "";
+          output += result.stderr;
+        }
+        // Limit each replacement to 1 MiB, including failure diagnostics.
+        if (Buffer.byteLength(output, "utf8") > 1024 * 1024) {
           throw new Error(`Shell interpolation output exceeds 1 MiB: ${command}`);
         }
-        return result.stdout;
+        return output;
       });
       return { action: "transform", text: expanded, images: event.images };
     } catch (error) {
