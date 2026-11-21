@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const READ_ONLY = ["read", "grep", "find", "ls"];
@@ -9,6 +9,8 @@ export const OPTIONS = [
   "3. Keep the plan without executing",
 ];
 const INSTRUCTIONS = `You are in read-only planning mode. Investigate the request using the available read-only tools. Do not implement changes or run commands. Return a self-contained Markdown implementation plan as your final response, with the goal, relevant files and findings, numbered implementation steps, risks or open questions, and verification/tests. Include enough context to execute it in a fresh session. The extension will save your final response; do not write the plan yourself.`;
+
+const TASK_INSTRUCTIONS = `You are in read-only task decomposition mode. Use only read, grep, find, and ls; do not implement changes or run commands. Turn the supplied plan into a self-contained Markdown task checklist. Each task must complete one very small, concrete unit of work: an independent, testable change, not a large abstraction or broad implementation phase. Split broad steps until each has a narrow scope and observable result. For each task include relevant files, necessary context, explicit dependencies (if any), acceptance criteria, and a specific test or verification command. Keep dependencies minimal and make each task independently executable once its stated prerequisites exist. Cover the full plan without adding speculative abstractions. Return only the task document. The extension will save it; do not write files yourself.`;
 
 export async function savePlan(cwd: string, text: string, now = new Date()): Promise<string> {
   const directory = join(cwd, ".pi", "plans");
@@ -28,6 +30,7 @@ export async function savePlan(cwd: string, text: string, now = new Date()): Pro
 export default function planMode(pi: ExtensionAPI): void {
   let active: {
     tools: string[];
+    instructions: string;
     text: string;
     failed: boolean;
     finish: (aborted: boolean) => void;
@@ -50,7 +53,7 @@ export default function planMode(pi: ExtensionAPI): void {
   pi.on("before_agent_start", () => {
     if (active) {
       pi.setActiveTools(READ_ONLY);
-      return { message: { customType: "plan-mode-context", content: INSTRUCTIONS, display: false } };
+      return { message: { customType: "plan-mode-context", content: active.instructions, display: false } };
     }
   });
   pi.on("context", (event) => {
@@ -77,29 +80,53 @@ export default function planMode(pi: ExtensionAPI): void {
     state?.finish(true);
   });
 
-  pi.registerCommand("plan", {
-    description: "Create a read-only plan: /plan <request>",
+  for (const command of ["plan", "tasks"] as const) {
+  pi.registerCommand(command, {
+    description: command === "plan" ? "Create a read-only plan: /plan <request>" : "Split a plan into small testable tasks: /tasks [plan.md] (defaults to latest plan)",
     handler: async (args, ctx) => {
       const request = args.trim();
-      if (!request) return ctx.ui.notify("Usage: /plan <request>", "warning");
+      if (command === "plan" && !request) return ctx.ui.notify("Usage: /plan <request>", "warning");
       if (active || !ctx.isIdle() || ctx.hasPendingMessages()) {
         return ctx.ui.notify("Wait for the current operation to finish before planning.", "warning");
       }
       if (!ctx.model) return ctx.ui.notify("Select a model before planning.", "error");
+      let sourcePath: string | undefined;
+      let source = request;
+      if (command === "tasks") {
+        try {
+          const directory = join(ctx.cwd, ".pi", "plans");
+          const name = request || (await readdir(directory)).filter((name) => name.endsWith(".md") && !name.endsWith(".tasks.md")).sort().at(-1);
+          if (!name) return ctx.ui.notify("No plan found. Run /plan first or use /tasks <plan.md>.", "warning");
+          sourcePath = request ? resolve(ctx.cwd, name) : join(directory, name);
+          if (!sourcePath.endsWith(".md") || sourcePath.endsWith(".tasks.md")) {
+            return ctx.ui.notify("Choose a plan .md file, not a .tasks.md file.", "warning");
+          }
+          source = `Plan file: ${sourcePath}\n\n${await readFile(sourcePath, "utf8")}`;
+        } catch (error) {
+          return ctx.ui.notify(`Cannot read plan: ${error instanceof Error ? error.message : String(error)}`, "error");
+        }
+      }
+      const instructions = command === "tasks" ? TASK_INSTRUCTIONS : INSTRUCTIONS;
       let finish!: (aborted: boolean) => void;
       const settled = new Promise<boolean>((resolve) => { finish = resolve; });
-      const state = { tools: pi.getActiveTools(), text: "", failed: false, finish, ctx };
+      const state = { tools: pi.getActiveTools(), instructions, text: "", failed: false, finish, ctx };
       active = state;
       pi.setActiveTools(READ_ONLY);
-      ctx.ui.setStatus("plan-mode", "plan (read-only)");
+      ctx.ui.setStatus("plan-mode", `${command} (read-only)`);
       try {
         // The explicit user prompt keeps the restriction even if context hooks remove older mode messages.
-        pi.sendUserMessage(`${INSTRUCTIONS}\n\n## Request\n\n${request}`);
+        pi.sendUserMessage(`${instructions}\n\n## Request\n\n${source}`);
         const aborted = await settled;
         if (active !== state) return; // Runtime was replaced or shut down.
         await ctx.waitForIdle();
         if (aborted || state.failed || !state.text.trim()) {
           ctx.ui.notify("Planning stopped; no plan was saved or executed.", "warning");
+          return;
+        }
+        if (sourcePath) {
+          const path = sourcePath.replace(/\.md$/, ".tasks.md");
+          await writeFile(path, `${state.text.trim()}\n`);
+          pi.sendMessage({ customType: "saved-tasks", content: `Tasks saved to \`${path}\`\n\n${state.text}`, display: true });
           return;
         }
         const path = await savePlan(ctx.cwd, state.text);
@@ -132,4 +159,5 @@ export default function planMode(pi: ExtensionAPI): void {
       }
     },
   });
+  }
 }

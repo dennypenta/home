@@ -8,7 +8,7 @@ import planMode, { OPTIONS, savePlan } from "./index.ts";
 async function harness(choice?: string) {
   const cwd = await mkdtemp(join(tmpdir(), "pi-plan-"));
   const handlers = new Map<string, Function>();
-  let command: Function;
+  const commands = new Map<string, Function>();
   let tools = ["read", "bash", "edit", "write", "custom"];
   const prompts: string[] = [];
   const displayed: any[] = [];
@@ -19,13 +19,12 @@ async function harness(choice?: string) {
   let selectionCount = 0;
   const pi = {
     on: (name: string, fn: Function) => handlers.set(name, fn),
-    registerCommand: (_name: string, config: any) => { command = config.handler; },
+    registerCommand: (name: string, config: any) => { commands.set(name, config.handler); },
     getActiveTools: () => [...tools],
     setActiveTools: (value: string[]) => { tools = value; },
     sendMessage: (message: any) => displayed.push(message),
     sendUserMessage: (text: string) => {
       prompts.push(text);
-      if (prompts.length !== 1) return;
       queueMicrotask(() => {
         handlers.get("message_end")!({ message: { role: "assistant", stopReason: outcome, content: [{ type: "text", text: "# Plan\n\n1. Add a test.\n2. Implement." }] } });
         handlers.get("agent_settled")!({ aborted });
@@ -62,7 +61,8 @@ async function harness(choice?: string) {
   planMode(pi as any);
   return {
     cwd, handlers, ctx, prompts, displayed, notices,
-    run: (request = "add a feature") => command!(request, ctx),
+    run: (request = "add a feature") => commands.get("plan")!(request, ctx),
+    tasks: (path = "") => commands.get("tasks")!(path, ctx),
     tools: () => tools, switched: () => switched, selections: () => selectionCount,
     fail: () => { outcome = "error"; }, abort: () => { aborted = true; },
     cleanup: () => rm(cwd, { recursive: true, force: true }),
@@ -136,6 +136,47 @@ test("session shutdown cancels pending planning without saving", async () => {
     assert.equal(h.selections(), 0);
     assert.equal(h.prompts.length, 1);
     assert.ok(h.tools().includes("custom"));
+  } finally { await h.cleanup(); }
+});
+
+test("tasks use the latest plan and save a sibling task document without execution", async () => {
+  const h = await harness(OPTIONS[2]);
+  try {
+    await h.run();
+    const [plan] = await readdir(join(h.cwd, ".pi/plans"));
+    const original = await readFile(join(h.cwd, ".pi/plans", plan), "utf8");
+    const running = h.tasks();
+    await running;
+    assert.match(h.prompts[1], /independent, testable change/);
+    assert.match(h.prompts[1], /acceptance criteria/);
+    assert.ok(h.prompts[1].includes(original.trim()));
+    assert.equal(await readFile(join(h.cwd, ".pi/plans", plan.replace(/\.md$/, ".tasks.md")), "utf8"), original);
+    assert.equal(await readFile(join(h.cwd, ".pi/plans", plan), "utf8"), original);
+    assert.equal(h.selections(), 1);
+    assert.equal(h.displayed[1].customType, "saved-tasks");
+    assert.ok(h.tools().includes("write"));
+  } finally { await h.cleanup(); }
+});
+
+test("tasks accept an explicit plan path and do not save failed output", async () => {
+  const h = await harness();
+  try {
+    const path = await savePlan(h.cwd, "# Explicit plan");
+    h.fail();
+    await h.tasks(path);
+    assert.ok(h.prompts[0].includes("# Explicit plan"));
+    assert.equal((await readdir(join(h.cwd, ".pi/plans"))).length, 1);
+    assert.equal(h.displayed.length, 0);
+    assert.ok(h.tools().includes("custom"));
+  } finally { await h.cleanup(); }
+});
+
+test("tasks without a plan do not call the model", async () => {
+  const h = await harness();
+  try {
+    await h.tasks();
+    assert.equal(h.prompts.length, 0);
+    assert.ok(h.notices.length);
   } finally { await h.cleanup(); }
 });
 

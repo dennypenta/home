@@ -14,6 +14,12 @@ The assistant explores with `read`, `grep`, `find`, and `ls`, then returns a sel
 
 The third option is the non-executing path added because the request listed only two of the three desired options.
 
+## Tasks
+
+Run `/tasks` to split the latest plan in `.pi/plans/` into small, independently testable units, or `/tasks <plan.md>` to choose a plan explicitly. Each task includes files, context, dependencies, acceptance criteria, and verification. Broad abstractions are split into concrete units of work.
+
+The read-only workflow saves the result alongside the plan as `<plan>.tasks.md`, replacing any previous task document. It does not execute tasks or offer execution options.
+
 ## Safety and behavior
 
 - Planning must start while the agent is idle with no queued messages.
