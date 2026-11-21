@@ -202,6 +202,16 @@ return {
           },
           enrich_config = enrichConf,
         },
+        ["pwa-chrome"] = {
+          type = "server",
+          host = "127.0.0.1",
+          port = "${port}",
+          executable = {
+            command = vim.fn.stdpath("data") .. "/mason/bin/js-debug-adapter",
+            -- Match the adapter host instead of localhost, which may resolve to IPv6.
+            args = { "${port}", "127.0.0.1" },
+          },
+        },
       }
       dap.configurations = {
         lua = {
